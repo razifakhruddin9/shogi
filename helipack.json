@@ -1,0 +1,11 @@
+{
+  "run": {
+    "port": 3000,
+    "command": "node server/usiServer.mjs"
+  },
+  "env": {
+    "NODE_ENV": "production",
+    "PORT": "3000",
+    "HOST": "0.0.0.0"
+  }
+}

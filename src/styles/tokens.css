@@ -1,0 +1,77 @@
+:root {
+  /* Surface & Border Hierarchy — Slate Board Studio */
+  --bg-shell: #141517;
+  --bg-canvas: #1a1b1e;
+  --bg-card: #202125;
+  --bg-card-hover: #26282e;
+  --bg-input: #17181b;
+  --border-hairline: #2c2e33;
+  --border-focus: #4da3f7;
+
+  /* Ink & Accent Tokens */
+  --ink-primary: #f3f4f6;
+  --ink-secondary: #c5c8ce;
+  --ink-muted: #858a94;
+  --accent-blue-bg: #213245;
+  --accent-blue-hover: #2a4058;
+  --accent-blue-ink: #4da3f7;
+  --accent-blue-solid: #2f81f7;
+
+  /* Board & Tactical Semantic Tokens */
+  --board-light: #f0d9b5;
+  --board-dark: #b58863;
+  --board-kaya: #e8cb9a;
+  --board-kaya-zone: #e0bf89;
+  --board-highlight: #cdd26a;
+  --board-legal: rgba(77, 163, 247, 0.42);
+  --semantic-win: #3fbf8a;
+  --semantic-warn: #e0a62f;
+  --semantic-blunder: #e5483a;
+
+  /* Typography */
+  --font-ui: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+  --font-kanji: 'Noto Serif JP', 'Yu Mincho', 'Hiragino Mincho ProN', serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  background-color: var(--bg-shell);
+  color: var(--ink-primary);
+  font-family: var(--font-ui);
+  -webkit-font-smoothing: antialiased;
+  overflow: hidden;
+}
+
+button,
+input,
+select,
+textarea {
+  font-family: inherit;
+}
+
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #2c2e33;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #3e4149;
+}
