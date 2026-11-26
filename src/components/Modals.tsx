@@ -231,6 +231,20 @@ interface WdoorProgressState {
   error: string | null;
 }
 
+async function parseJsonResponse<T>(res: Response): Promise<T | null> {
+  const contentType = res.headers.get('content-type') || '';
+  const text = await res.text();
+  if (!text) return null;
+  if (!contentType.includes('application/json') && text.trim().startsWith('<')) {
+    return null;
+  }
+  try {
+    return JSON.parse(text) as T;
+  } catch {
+    return null;
+  }
+}
+
 interface ImportModalProps {
   onClose: () => void;
   onImportToDatabase: (games: ParsedDatabaseGame[], openFirstInAnalysis: boolean) => void;
@@ -262,7 +276,7 @@ export const ImportModal: React.FC<ImportModalProps> = ({
     let active = true;
     setLoadingCatalog(true);
     fetch('/api/wdoor/catalog')
-      .then((r) => (r.ok ? r.json() : null))
+      .then(async (r) => (r.ok ? parseJsonResponse<{ items?: WdoorCatalogItem[]; deviceDir?: string }>(r) : null))
       .then((data) => {
         if (active && data?.items) {
           setCatalog(data.items);
@@ -284,7 +298,7 @@ export const ImportModal: React.FC<ImportModalProps> = ({
     if (!downloadingYear || downloadingYear === 'today') return;
     const timer = window.setInterval(() => {
       fetch('/api/wdoor/progress')
-        .then((r) => (r.ok ? r.json() : null))
+        .then((r) => (r.ok ? parseJsonResponse<WdoorProgressState>(r) : null))
         .then((p) => {
           if (p) setProgress(p);
         })
@@ -303,8 +317,16 @@ export const ImportModal: React.FC<ImportModalProps> = ({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ limit: 30 }),
       });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Gagal mengunduh partai hari ini.');
+      const data = await parseJsonResponse<{
+        error?: string;
+        games?: { csaText: string; filename: string }[];
+      }>(res);
+      if (!res.ok || !data) {
+        throw new Error(
+          data?.error ||
+            'Server backend downloader belum aktif. Jalankan `npm run engine` untuk mengunduh lewat web.',
+        );
+      }
 
       const parsed: ParsedDatabaseGame[] = [];
       for (const item of data.games ?? []) {
@@ -346,8 +368,17 @@ export const ImportModal: React.FC<ImportModalProps> = ({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ year, limit: wdoorLimit }),
       });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || `Gagal mengunduh wdoor${year}.7z`);
+      const data = await parseJsonResponse<{
+        error?: string;
+        savedArchivePath?: string;
+        games?: { csaText: string; filename: string }[];
+      }>(res);
+      if (!res.ok || !data) {
+        throw new Error(
+          data?.error ||
+            `Gagal mengunduh wdoor${year}.7z. Pastikan server backend aktif (npm run engine).`,
+        );
+      }
 
       const parsed: ParsedDatabaseGame[] = [];
       for (const item of data.games ?? []) {
@@ -454,16 +485,22 @@ export const ImportModal: React.FC<ImportModalProps> = ({
             <button
               type="button"
               className={sourceTab === 'wdoor' ? 'active' : ''}
-              onClick={() => setSourceTab('wdoor')}
+              onClick={() => {
+                setSourceTab('wdoor');
+                setError('');
+              }}
             >
-              Download dari wdoor.c.u-tokyo.ac.jp
+              Import Lewat Web
             </button>
             <button
               type="button"
               className={sourceTab === 'local' ? 'active' : ''}
-              onClick={() => setSourceTab('local')}
+              onClick={() => {
+                setSourceTab('local');
+                setError('');
+              }}
             >
-              File Lokal / Paste (.kif, .ki2, .csa, .sfen)
+              Import Local
             </button>
           </div>
 

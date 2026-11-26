@@ -1,11 +1,9 @@
-import React, { useMemo, useRef, useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import {
   Database,
   Download,
-  FileUp,
   Globe,
   Search,
-  Sparkles,
   Trash2,
   X,
 } from 'lucide-react';
@@ -24,7 +22,6 @@ interface GameDatabaseSidebarProps {
   onOpenGame: (game: ParsedDatabaseGame) => void;
   onRemoveGame: (id: string) => void;
   onClearAll: () => void;
-  onLoadSamples: () => void;
   onOpenPasteImport: () => void;
 }
 
@@ -43,14 +40,12 @@ export const GameDatabaseSidebar: React.FC<GameDatabaseSidebarProps> = ({
   onOpenGame,
   onRemoveGame,
   onClearAll,
-  onLoadSamples,
   onOpenPasteImport,
 }) => {
   const [search, setSearch] = useState('');
   const [formatFilter, setFormatFilter] = useState<'all' | DatabaseFormat>('all');
   const [isDragging, setIsDragging] = useState(false);
   const [importFeedback, setImportFeedback] = useState<string | null>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const processFiles = async (fileList: FileList | File[]) => {
     const files = Array.from(fileList);
@@ -126,70 +121,37 @@ export const GameDatabaseSidebar: React.FC<GameDatabaseSidebarProps> = ({
 
       {/* Drop / Import Controls */}
       <div className="db-import-zone">
-        <input
-          ref={fileInputRef}
-          type="file"
-          multiple
-          accept=".kif,.ki2,.csa,.sfen,.usi,.txt"
-          style={{ display: 'none' }}
-          onChange={(e) => {
-            if (e.target.files) {
-              void processFiles(e.target.files);
-              e.target.value = '';
-            }
-          }}
-        />
         <button
           type="button"
           className="db-upload-btn"
           onClick={onOpenPasteImport}
         >
           <Globe size={15} />
-          <span>Import Database (wdoor / Lokal)</span>
+          <span>Import Lewat Web / Local</span>
         </button>
 
-        <div className="db-sub-actions">
-          <button
-            type="button"
-            className="ghost-btn-sm"
-            onClick={() => fileInputRef.current?.click()}
-            title="Upload .kif, .ki2, .csa, or .sfen files from PC"
-          >
-            <FileUp size={12} />
-            <span>File Lokal</span>
-          </button>
-          <button
-            type="button"
-            className="ghost-btn-sm"
-            onClick={onLoadSamples}
-            title="Restore built-in sample database games"
-          >
-            <Sparkles size={12} />
-            <span>Samples</span>
-          </button>
-          {games.length > 0 && (
-            <>
-              <button
-                type="button"
-                className="ghost-btn-sm"
-                onClick={() => downloadDatabaseToDevice(games)}
-                title="Simpan seluruh database ke folder Downloads (.csa)"
-              >
-                <Download size={12} />
-                <span>Simpan .csa</span>
-              </button>
-              <button
-                type="button"
-                className="ghost-btn-sm"
-                onClick={onClearAll}
-                title="Clear all database entries"
-              >
-                <Trash2 size={12} />
-                <span>Clear</span>
-              </button>
-            </>
-          )}
-        </div>
+        {games.length > 0 && (
+          <div className="db-sub-actions">
+            <button
+              type="button"
+              className="ghost-btn-sm"
+              onClick={() => downloadDatabaseToDevice(games)}
+              title="Simpan seluruh database ke folder Downloads (.csa)"
+            >
+              <Download size={12} />
+              <span>Simpan .csa</span>
+            </button>
+            <button
+              type="button"
+              className="ghost-btn-sm"
+              onClick={onClearAll}
+              title="Clear all database entries"
+            >
+              <Trash2 size={12} />
+              <span>Clear</span>
+            </button>
+          </div>
+        )}
 
         <div className="db-drop-hint">
           Tersimpan di perangkat (IndexedDB &amp; Downloads/ShogiStudio)

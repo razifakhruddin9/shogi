@@ -96,7 +96,7 @@ function isBookOpeningMove(prefixMovesUsi: string[], initialSfen: string): boole
   });
 }
 
-function classifySinglePly(params: {
+export function classifySinglePly(params: {
   ply: number;
   mover: Side;
   playedUsi: string;

@@ -35,6 +35,7 @@ import {
 } from '../engine/types';
 import {
   CATEGORY_MAP,
+  classifySinglePly,
   FullGameReview,
   generateFullGameReview,
   ReviewedPly,
@@ -665,6 +666,57 @@ export const ShogiBoardArena: React.FC<ShogiBoardArenaProps> = ({
     return map;
   }, [gameReview]);
 
+  // Show Chess.com-style move classification indicators ONLY in Analysis mode or post-game review
+  const showAnalysisIndicators = tabState.mode === 'analysis' || Boolean(gameResult);
+
+  const getPlyClassification = useCallback(
+    (ply: number) => {
+      if (!showAnalysisIndicators || ply <= 0) return null;
+      const full = reviewByPly.get(ply);
+      if (full) {
+        return { category: full.category, cpLoss: full.cpLoss };
+      }
+      if (tabState.mode !== 'analysis') return null;
+      const prevEval = evalByPly[ply - 1];
+      const curEval = evalByPly[ply];
+      const move = moves[ply - 1];
+      const prevPos = positions[ply - 1];
+      const curPos = positions[ply];
+      if (!prevEval || !curEval || !move || !prevPos || !curPos) return null;
+      return classifySinglePly({
+        ply,
+        mover: prevPos.turn,
+        playedUsi: move.usi,
+        prevScoreCp: prevEval.scoreCp,
+        curScoreCp: curEval.scoreCp,
+        prevMateIn: prevEval.mateIn,
+        curMateIn: curEval.mateIn,
+        prevPos,
+        curPos,
+        prefixMovesUsi: moves.slice(0, ply).map((m) => m.usi),
+        initialSfen: startSfen,
+      });
+    },
+    [
+      evalByPly,
+      moves,
+      positions,
+      reviewByPly,
+      showAnalysisIndicators,
+      startSfen,
+      tabState.mode,
+    ],
+  );
+
+  const activeMoveCls = useMemo(() => {
+    const res = getPlyClassification(viewPly);
+    if (!res) return null;
+    return {
+      ...res,
+      meta: CATEGORY_MAP[res.category],
+    };
+  }, [getPlyClassification, viewPly]);
+
   // Visual coordinates & sides based on flip
   const topSide: Side = flipped ? 'b' : 'w';
   const bottomSide: Side = flipped ? 'w' : 'b';
@@ -920,13 +972,19 @@ export const ShogiBoardArena: React.FC<ShogiBoardArenaProps> = ({
                         const isDark = (r + c) % 2 === 1;
                         const isSelected =
                           selectedSquare?.row === r && selectedSquare?.col === c;
-                        const isLast =
+                        const isLastFrom =
                           lastMove &&
-                          ((lastMove.from?.row === r && lastMove.from?.col === c) ||
-                            (lastMove.to.row === r && lastMove.to.col === c));
+                          lastMove.from?.row === r &&
+                          lastMove.from?.col === c;
+                        const isLastTo =
+                          lastMove &&
+                          lastMove.to.row === r &&
+                          lastMove.to.col === c;
+                        const isLast = Boolean(isLastFrom || isLastTo);
                         const isLegalTarget = legalTargetsForSelection.has(`${r}-${c}`);
                         const isKingChecked =
                           checkedKingSq?.row === r && checkedKingSq?.col === c;
+                        const destClsBadge = isLastTo ? activeMoveCls : null;
 
                         // Promotion zone highlight subtle indicator
                         const inOppZone = r <= 2 || r >= 6;
@@ -938,8 +996,17 @@ export const ShogiBoardArena: React.FC<ShogiBoardArenaProps> = ({
                             className={`shogi-cell ${isDark ? 'dark-sq' : 'light-sq'} ${
                               inOppZone ? 'zone-sq' : ''
                             } ${isLast ? 'last-move' : ''} ${
-                              isSelected ? 'selected-sq' : ''
-                            } ${isKingChecked ? 'checked-king' : ''}`}
+                              destClsBadge ? 'has-cls-tint' : ''
+                            } ${isSelected ? 'selected-sq' : ''} ${
+                              isKingChecked ? 'checked-king' : ''
+                            }`}
+                            style={
+                              destClsBadge
+                                ? ({
+                                    ['--cls-tint' as string]: destClsBadge.meta.color,
+                                  } as React.CSSProperties)
+                                : undefined
+                            }
                             onClick={() => handleSquareClick(r, c)}
                           >
                             {cell && (
@@ -949,6 +1016,15 @@ export const ShogiBoardArena: React.FC<ShogiBoardArenaProps> = ({
                                 flipped={flipped}
                                 showEnglishHint={showEnglishHints}
                               />
+                            )}
+                            {destClsBadge && (
+                              <span
+                                className="board-move-badge"
+                                style={{ backgroundColor: destClsBadge.meta.color }}
+                                title={`${destClsBadge.meta.label} (${destClsBadge.cpLoss} cp loss)`}
+                              >
+                                {destClsBadge.meta.symbol}
+                              </span>
                             )}
                             {isLegalTarget && (
                               <span
@@ -1284,8 +1360,8 @@ export const ShogiBoardArena: React.FC<ShogiBoardArenaProps> = ({
               </div>
             ) : (
               moveRows.map((row) => {
-                const sRev = reviewByPly.get(row.sentePly);
-                const gRev = row.gotePly ? reviewByPly.get(row.gotePly) : undefined;
+                const sRev = getPlyClassification(row.sentePly);
+                const gRev = row.gotePly ? getPlyClassification(row.gotePly) : null;
                 const sMeta = sRev ? CATEGORY_MAP[sRev.category] : undefined;
                 const gMeta = gRev ? CATEGORY_MAP[gRev.category] : undefined;
                 const sImp = getMoveImpact(row.sentePly);
@@ -1298,26 +1374,28 @@ export const ShogiBoardArena: React.FC<ShogiBoardArenaProps> = ({
                       className={`kifu-cell ${viewPly === row.sentePly ? 'active' : ''}`}
                       onClick={() => setViewPly(row.sentePly)}
                     >
-                      <span>
-                        {row.sente
-                          ? notationMode === 'kifu'
-                            ? row.sente.kifu
-                            : row.sente.western
-                          : ''}
+                      <span className="kifu-cell-left">
+                        {sMeta && (
+                          <span
+                            className="kifu-cls-badge"
+                            style={{ backgroundColor: sMeta.color }}
+                            title={`${sMeta.label} (${sRev!.cpLoss} cp loss)`}
+                          >
+                            {sMeta.symbol}
+                          </span>
+                        )}
+                        <span>
+                          {row.sente
+                            ? notationMode === 'kifu'
+                              ? row.sente.kifu
+                              : row.sente.western
+                            : ''}
+                        </span>
                       </span>
                       <span className="kifu-cell-right">
                         {sImp && (
                           <span className={`kifu-delta impact-${sImp.tone}`}>
                             {sImp.text}
-                          </span>
-                        )}
-                        {sMeta && (
-                          <span
-                            className="move-cls"
-                            style={{ color: sMeta.color }}
-                            title={`${sMeta.label} (${sRev!.cpLoss} cp loss)`}
-                          >
-                            {sMeta.symbol}
                           </span>
                         )}
                       </span>
@@ -1330,26 +1408,28 @@ export const ShogiBoardArena: React.FC<ShogiBoardArenaProps> = ({
                       onClick={() => row.gotePly && setViewPly(row.gotePly)}
                       disabled={!row.gote}
                     >
-                      <span>
-                        {row.gote
-                          ? notationMode === 'kifu'
-                            ? row.gote.kifu
-                            : row.gote.western
-                          : ''}
+                      <span className="kifu-cell-left">
+                        {gMeta && (
+                          <span
+                            className="kifu-cls-badge"
+                            style={{ backgroundColor: gMeta.color }}
+                            title={`${gMeta.label} (${gRev!.cpLoss} cp loss)`}
+                          >
+                            {gMeta.symbol}
+                          </span>
+                        )}
+                        <span>
+                          {row.gote
+                            ? notationMode === 'kifu'
+                              ? row.gote.kifu
+                              : row.gote.western
+                            : ''}
+                        </span>
                       </span>
                       <span className="kifu-cell-right">
                         {gImp && (
                           <span className={`kifu-delta impact-${gImp.tone}`}>
                             {gImp.text}
-                          </span>
-                        )}
-                        {gMeta && (
-                          <span
-                            className="move-cls"
-                            style={{ color: gMeta.color }}
-                            title={`${gMeta.label} (${gRev!.cpLoss} cp loss)`}
-                          >
-                            {gMeta.symbol}
                           </span>
                         )}
                       </span>

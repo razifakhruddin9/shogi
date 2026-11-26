@@ -358,7 +358,6 @@ export function App() {
               setDatabaseGames((prev) => prev.filter((g) => g.id !== id))
             }
             onClearAll={() => setDatabaseGames([])}
-            onLoadSamples={() => setDatabaseGames(createSampleDatabaseGames())}
             onOpenPasteImport={() => setShowImportModal(true)}
           />
         }
