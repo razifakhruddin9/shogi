@@ -406,10 +406,14 @@
 /* 4. New Tab / Home Launcher */
 .home-launcher-scroll {
   flex: 1;
+  min-height: 0;
+  min-width: 0;
   overflow-y: auto;
-  padding: 36px 32px;
+  overflow-x: hidden;
+  padding: 36px 32px 48px;
   display: flex;
   justify-content: center;
+  align-items: flex-start;
 }
 
 .home-launcher-container {
@@ -418,6 +422,7 @@
   display: flex;
   flex-direction: column;
   gap: 24px;
+  flex-shrink: 0;
 }
 
 .home-header-row {
@@ -461,6 +466,7 @@
   display: grid;
   grid-template-columns: repeat(5, 1fr);
   gap: 16px;
+  flex-shrink: 0;
 }
 
 .launcher-card {
@@ -539,6 +545,7 @@
   border: 1px solid var(--border-hairline);
   border-radius: 8px;
   overflow: hidden;
+  flex-shrink: 0;
 }
 
 .recent-header {
