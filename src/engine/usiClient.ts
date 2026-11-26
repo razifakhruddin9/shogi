@@ -50,14 +50,37 @@ export interface GameReviewSummary {
   plies: GameReviewPly[];
 }
 
-export async function fetchUsiStatus(): Promise<UsiBridgeStatus | null> {
-  try {
-    const res = await fetch('/api/usi/status');
-    if (!res.ok) return null;
-    return (await res.json()) as UsiBridgeStatus;
-  } catch {
-    return null;
+const LOCAL_BRIDGE_URL = 'http://127.0.0.1:3891';
+let activeUsiBase = '';
+
+export async function fetchUsiStatus(
+  options: { probeLocalBridge?: boolean } = {},
+): Promise<UsiBridgeStatus | null> {
+  const candidates = options.probeLocalBridge
+    ? ['', LOCAL_BRIDGE_URL]
+    : activeUsiBase
+      ? [activeUsiBase]
+      : [''];
+
+  for (const base of candidates) {
+    try {
+      const res = await fetch(`${base}/api/usi/status`, {
+        signal: AbortSignal.timeout(1200),
+      });
+      if (!res.ok) continue;
+      const st = (await res.json()) as UsiBridgeStatus;
+      if (st.ready) {
+        activeUsiBase = base;
+        return st;
+      }
+      if (base === '' && !options.probeLocalBridge) {
+        return st;
+      }
+    } catch {
+      // try next candidate
+    }
   }
+  return null;
 }
 
 export async function analyzeWithYaneuraOu(
@@ -66,7 +89,7 @@ export async function analyzeWithYaneuraOu(
   options: { movetimeMs?: number; multiPv?: number; depth?: number } = {},
 ): Promise<UsiAnalysisResult | null> {
   try {
-    const res = await fetch('/api/usi/analyze', {
+    const res = await fetch(`${activeUsiBase}/api/usi/analyze`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -152,7 +175,7 @@ export async function runFullGameReview(
   initialTurn: Side = 'b',
 ): Promise<GameReviewSummary | null> {
   try {
-    const res = await fetch('/api/usi/review', {
+    const res = await fetch(`${activeUsiBase}/api/usi/review`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({

@@ -300,7 +300,8 @@ function sendJson(res, status, data) {
     'Content-Type': 'application/json',
     'Access-Control-Allow-Origin': '*',
     'Access-Control-Allow-Methods': 'GET,POST,OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type',
+    'Access-Control-Allow-Headers': 'Content-Type, Access-Control-Request-Private-Network',
+    'Access-Control-Allow-Private-Network': 'true',
   });
   res.end(JSON.stringify(data));
 }

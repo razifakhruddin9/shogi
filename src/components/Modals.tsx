@@ -21,6 +21,7 @@ export interface PlayConfig {
 interface PlaySetupModalProps {
   defaultSide: 'b' | 'w' | 'random';
   usiReady: boolean;
+  onProbeLocalEngine?: () => Promise<boolean>;
   onClose: () => void;
   onStart: (config: PlayConfig) => void;
 }
@@ -74,17 +75,36 @@ const TIME_CONTROLS = [
 export const PlaySetupModal: React.FC<PlaySetupModalProps> = ({
   defaultSide,
   usiReady,
+  onProbeLocalEngine,
   onClose,
   onStart,
 }) => {
-  const availableBots = BOTS.filter((b) => !b.requiresUsi || usiReady);
   const [mode, setMode] = useState<'bot' | 'local'>('bot');
-  const [selectedBotIdx, setSelectedBotIdx] = useState(0);
+  const [selectedBotIdx, setSelectedBotIdx] = useState(() => (usiReady ? 0 : 1));
   const [timeIdx, setTimeIdx] = useState(2);
   const [side, setSide] = useState<'b' | 'w' | 'random'>(defaultSide);
+  const [probingEngine, setProbingEngine] = useState(false);
+  const [probeMsg, setProbeMsg] = useState('');
 
-  const bot = availableBots[Math.min(selectedBotIdx, availableBots.length - 1)];
+  const bot = BOTS[Math.min(selectedBotIdx, BOTS.length - 1)];
   const tc = TIME_CONTROLS[timeIdx];
+  const isBlockedOfflineBot = mode === 'bot' && bot.requiresUsi && !usiReady;
+
+  const handleProbeEngine = async () => {
+    if (!onProbeLocalEngine || probingEngine) return;
+    setProbingEngine(true);
+    setProbeMsg('');
+    try {
+      const ok = await onProbeLocalEngine();
+      setProbeMsg(
+        ok
+          ? 'YaneuraOu + Suisho5 terhubung dari bridge lokal!'
+          : 'Engine lokal belum terdeteksi di 127.0.0.1:3891. Jalankan `npm run engine` di PC Anda.',
+      );
+    } finally {
+      setProbingEngine(false);
+    }
+  };
 
   return (
     <div className="modal-backdrop" onClick={onClose}>
@@ -121,21 +141,61 @@ export const PlaySetupModal: React.FC<PlaySetupModalProps> = ({
             <div className="form-group">
               <label className="form-label">Select Engine Personality</label>
               <div className="bot-grid">
-                {availableBots.map((b, i) => (
-                  <button
-                    key={b.name}
-                    type="button"
-                    className={`bot-option ${selectedBotIdx === i ? 'selected' : ''}`}
-                    onClick={() => setSelectedBotIdx(i)}
-                  >
-                    <div className="bot-option-top">
-                      <span className="bot-name">{b.name}</span>
-                      <span className="bot-elo">{b.elo}</span>
-                    </div>
-                    <span className="bot-desc">{b.desc}</span>
-                  </button>
-                ))}
+                {BOTS.map((b, i) => {
+                  const offline = b.requiresUsi && !usiReady;
+                  return (
+                    <button
+                      key={b.name}
+                      type="button"
+                      className={`bot-option ${b.requiresUsi ? 'is-flagship' : ''} ${
+                        offline ? 'is-offline' : ''
+                      } ${selectedBotIdx === i ? 'selected' : ''}`}
+                      onClick={() => {
+                        setSelectedBotIdx(i);
+                        setProbeMsg('');
+                      }}
+                    >
+                      <div className="bot-option-top">
+                        <span className="bot-badge-row">
+                          <span className="bot-name">{b.name}</span>
+                          {b.requiresUsi && (
+                            <span className={`bot-status-pill ${usiReady ? 'online' : 'offline'}`}>
+                              {usiReady ? 'Online' : 'Lokal PC'}
+                            </span>
+                          )}
+                        </span>
+                        <span className="bot-elo">{b.elo}</span>
+                      </div>
+                      <span className="bot-desc">{b.desc}</span>
+                    </button>
+                  );
+                })}
               </div>
+
+              {bot.requiresUsi && !usiReady && (
+                <div className="usi-offline-notice">
+                  <div className="usi-offline-text">
+                    <strong>YaneuraOu + Suisho5</strong> berjalan lokal memakai binary AVX2
+                    &amp; bobot NNUE 64 MB (tidak dapat berjalan langsung di server Vercel).
+                    Jalankan <code>npm run engine</code> di PC Anda lalu klik{' '}
+                    <strong>Cek Engine Lokal</strong>, atau pilih{' '}
+                    <strong>Meijin Engine (1950)</strong> untuk main langsung di browser.
+                  </div>
+                  <div className="usi-offline-actions">
+                    <button
+                      type="button"
+                      className="secondary-btn"
+                      onClick={() => void handleProbeEngine()}
+                      disabled={probingEngine}
+                    >
+                      {probingEngine
+                        ? 'Memeriksa 127.0.0.1:3891…'
+                        : 'Cek Engine Lokal (127.0.0.1:3891)'}
+                    </button>
+                    {probeMsg && <span className="usi-probe-msg">{probeMsg}</span>}
+                  </div>
+                </div>
+              )}
             </div>
           )}
 
@@ -192,6 +252,7 @@ export const PlaySetupModal: React.FC<PlaySetupModalProps> = ({
           <button
             type="button"
             className="primary-solid-btn"
+            disabled={isBlockedOfflineBot}
             onClick={() =>
               onStart({
                 mode,

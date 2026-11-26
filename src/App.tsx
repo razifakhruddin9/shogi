@@ -436,6 +436,12 @@ export function App() {
         <PlaySetupModal
           defaultSide={profile.preferredSide}
           usiReady={usiReady}
+          onProbeLocalEngine={async () => {
+            const st = await fetchUsiStatus({ probeLocalBridge: true });
+            const ok = Boolean(st?.ready);
+            setUsiReady(ok);
+            return ok;
+          }}
           onClose={() => setShowPlayModal(false)}
           onStart={handleStartMatch}
         />
