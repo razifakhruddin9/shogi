@@ -370,6 +370,10 @@ export const ImportModal: React.FC<ImportModalProps> = ({
       });
       const data = await parseJsonResponse<{
         error?: string;
+        fallbackDirectDownload?: boolean;
+        archiveUrl?: string;
+        filename?: string;
+        message?: string;
         savedArchivePath?: string;
         games?: { csaText: string; filename: string }[];
       }>(res);
@@ -378,6 +382,22 @@ export const ImportModal: React.FC<ImportModalProps> = ({
           data?.error ||
             `Gagal mengunduh wdoor${year}.7z. Pastikan server backend aktif (npm run engine).`,
         );
+      }
+
+      if (data.fallbackDirectDownload && data.archiveUrl) {
+        const a = document.createElement('a');
+        a.href = data.archiveUrl;
+        a.target = '_blank';
+        a.rel = 'noreferrer';
+        a.download = data.filename || `wdoor${year}.7z`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        setStatusMsg(
+          data.message ||
+            `Download ${data.filename ?? `wdoor${year}.7z`} dimulai di browser.`,
+        );
+        return;
       }
 
       const parsed: ParsedDatabaseGame[] = [];
