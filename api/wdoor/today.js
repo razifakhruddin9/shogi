@@ -1,15 +1,19 @@
 import { parseVercelBody, WDOOR_TODAY_URL } from '../_wdoor.js';
 
 export default async function handler(req, res) {
-  if (req.method !== 'POST') {
+  if (req.method !== 'POST' && req.method !== 'GET') {
     res.status(405).json({ error: 'Method not allowed' });
     return;
   }
 
   try {
-    const body = await parseVercelBody(req);
-    const safeLimit = Math.max(1, Math.min(35, Number(body.limit) || 25));
-    const idxRes = await fetch(WDOOR_TODAY_URL, { redirect: 'follow' });
+    const body = req.method === 'POST' ? await parseVercelBody(req) : {};
+    const safeLimit = Math.max(1, Math.min(20, Number(body.limit) || 18));
+    const idxRes = await fetch(WDOOR_TODAY_URL, {
+      redirect: 'follow',
+      headers: { 'User-Agent': 'ShogiStudio/1.0' },
+      signal: AbortSignal.timeout(4500),
+    });
     if (!idxRes.ok) {
       res.status(502).json({
         error: `Gagal mengambil indeks Floodgate hari ini (HTTP ${idxRes.status}).`,
@@ -37,30 +41,25 @@ export default async function handler(req, res) {
     }
 
     const chosen = [...finishedLinks, ...otherLinks].slice(0, safeLimit);
-    const games = [];
-    const batchSize = 8;
+    const batchResults = await Promise.all(
+      chosen.map(async (href) => {
+        try {
+          const fullUrl = new URL(href, baseUrl).toString();
+          const gRes = await fetch(fullUrl, {
+            headers: { 'User-Agent': 'ShogiStudio/1.0' },
+            signal: AbortSignal.timeout(3500),
+          });
+          if (!gRes.ok) return null;
+          const csaText = await gRes.text();
+          const fname = href.split('/').pop() || 'floodgate.csa';
+          return { filename: fname, csaText };
+        } catch {
+          return null;
+        }
+      }),
+    );
 
-    for (let i = 0; i < chosen.length; i += batchSize) {
-      const slice = chosen.slice(i, i + batchSize);
-      const batchResults = await Promise.all(
-        slice.map(async (href) => {
-          try {
-            const fullUrl = new URL(href, baseUrl).toString();
-            const gRes = await fetch(fullUrl);
-            if (!gRes.ok) return null;
-            const csaText = await gRes.text();
-            const fname = href.split('/').pop() || 'floodgate.csa';
-            return { filename: fname, csaText };
-          } catch {
-            return null;
-          }
-        }),
-      );
-      for (const item of batchResults) {
-        if (item) games.push(item);
-      }
-    }
-
+    const games = batchResults.filter(Boolean);
     res.status(200).json({
       sourceUrl: idxRes.url,
       count: games.length,

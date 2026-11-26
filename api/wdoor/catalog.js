@@ -8,10 +8,10 @@ export default async function handler(req, res) {
 
   let items = DEFAULT_CATALOG;
   try {
-    const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), 4500);
-    const r = await fetch(WDOOR_INDEX_URL, { signal: controller.signal });
-    clearTimeout(timer);
+    const r = await fetch(WDOOR_INDEX_URL, {
+      headers: { 'User-Agent': 'ShogiStudio/1.0' },
+      signal: AbortSignal.timeout(3000),
+    });
     if (r.ok) {
       const html = await r.text();
       const parsed = [];

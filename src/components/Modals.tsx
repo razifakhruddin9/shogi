@@ -220,6 +220,34 @@ interface WdoorCatalogItem {
   cached: boolean;
 }
 
+const FALLBACK_WDOOR_CATALOG: WdoorCatalogItem[] = [
+  ['2026', '93 MB'],
+  ['2025', '335 MB'],
+  ['2024', '338 MB'],
+  ['2023', '339 MB'],
+  ['2022', '290 MB'],
+  ['2021', '352 MB'],
+  ['2020', '337 MB'],
+  ['2019', '217 MB'],
+  ['2018', '107 MB'],
+  ['2017', '184 MB'],
+  ['2016', '217 MB'],
+  ['2015', '182 MB'],
+  ['2014', '159 MB'],
+  ['2013', '222 MB'],
+  ['2012', '167 MB'],
+  ['2011', '105 MB'],
+  ['2010', '132 MB'],
+  ['2009', '85 MB'],
+  ['2008', '59 MB'],
+].map(([year, sizeLabel]) => ({
+  year,
+  file: `wdoor${year}.7z`,
+  sizeLabel,
+  url: `https://wdoor.c.u-tokyo.ac.jp/shogi/archive/wdoor${year}.7z`,
+  cached: false,
+}));
+
 interface WdoorProgressState {
   active: boolean;
   stage: string;
@@ -265,8 +293,9 @@ export const ImportModal: React.FC<ImportModalProps> = ({
   const fileRef = useRef<HTMLInputElement>(null);
 
   // Floodgate (wdoor) states
-  const [catalog, setCatalog] = useState<WdoorCatalogItem[]>([]);
-  const [deviceDir, setDeviceDir] = useState<string>('~/Downloads/ShogiStudio');
+  const [catalog, setCatalog] = useState<WdoorCatalogItem[]>(FALLBACK_WDOOR_CATALOG);
+  const [backendOnline, setBackendOnline] = useState<boolean | null>(null);
+  const [deviceDir, setDeviceDir] = useState<string>('Browser Downloads & IndexedDB');
   const [loadingCatalog, setLoadingCatalog] = useState(false);
   const [downloadingYear, setDownloadingYear] = useState<string | null>(null);
   const [wdoorLimit, setWdoorLimit] = useState<number>(150);
@@ -276,15 +305,23 @@ export const ImportModal: React.FC<ImportModalProps> = ({
     let active = true;
     setLoadingCatalog(true);
     fetch('/api/wdoor/catalog')
-      .then(async (r) => (r.ok ? parseJsonResponse<{ items?: WdoorCatalogItem[]; deviceDir?: string }>(r) : null))
+      .then(async (r) =>
+        r.ok
+          ? parseJsonResponse<{ items?: WdoorCatalogItem[]; deviceDir?: string }>(r)
+          : null,
+      )
       .then((data) => {
-        if (active && data?.items) {
+        if (!active) return;
+        if (data?.items && data.items.length > 0) {
           setCatalog(data.items);
+          setBackendOnline(true);
           if (data.deviceDir) setDeviceDir(data.deviceDir);
+        } else {
+          setBackendOnline(false);
         }
       })
       .catch(() => {
-        // ignore if server offline
+        if (active) setBackendOnline(false);
       })
       .finally(() => {
         if (active) setLoadingCatalog(false);
@@ -315,7 +352,7 @@ export const ImportModal: React.FC<ImportModalProps> = ({
       const res = await fetch('/api/wdoor/today', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ limit: 30 }),
+        body: JSON.stringify({ limit: 18 }),
       });
       const data = await parseJsonResponse<{
         error?: string;
@@ -324,7 +361,7 @@ export const ImportModal: React.FC<ImportModalProps> = ({
       if (!res.ok || !data) {
         throw new Error(
           data?.error ||
-            'Server backend downloader belum aktif. Jalankan `npm run engine` untuk mengunduh lewat web.',
+            `API /api/wdoor/today merespons HTTP ${res.status} (bukan JSON). Jika Anda baru saja deploy ke Vercel, tunggu build selesai lalu hard-refresh, atau di lokal jalankan "npm run engine".`,
         );
       }
 
@@ -378,10 +415,12 @@ export const ImportModal: React.FC<ImportModalProps> = ({
         games?: { csaText: string; filename: string }[];
       }>(res);
       if (!res.ok || !data) {
-        throw new Error(
-          data?.error ||
-            `Gagal mengunduh wdoor${year}.7z. Pastikan server backend aktif (npm run engine).`,
+        const directUrl = `https://wdoor.c.u-tokyo.ac.jp/shogi/archive/wdoor${year}.7z`;
+        window.open(directUrl, '_blank', 'noopener,noreferrer');
+        setStatusMsg(
+          `Server ekstraksi lokal tidak aktif (HTTP ${res.status}). Membuka unduhan langsung ${`wdoor${year}.7z`} di browser — ekstrak file .csa lalu masukkan lewat tab Import Local.`,
         );
+        return;
       }
 
       if (data.fallbackDirectDownload && data.archiveUrl) {
@@ -575,13 +614,14 @@ export const ImportModal: React.FC<ImportModalProps> = ({
                 <label className="form-label">
                   Arsip Tahunan Floodgate (klik untuk download &amp; masukkan ke database)
                 </label>
-                {loadingCatalog ? (
-                  <div className="wdoor-catalog-loading">Memuat daftar arsip wdoor…</div>
-                ) : catalog.length === 0 ? (
-                  <div className="form-error">
-                    Server lokal offline. Pastikan backend aktif (`npm run engine`) untuk
-                    mengunduh langsung dari `wdoor.c.u-tokyo.ac.jp`.
+                {backendOnline === false && (
+                  <div className="db-drop-hint" style={{ marginBottom: 6 }}>
+                    Endpoint `/api/wdoor/catalog` tidak merespons JSON — daftar arsip
+                    tetap tersedia untuk unduhan langsung `.7z` di browser.
                   </div>
+                )}
+                {loadingCatalog && catalog.length === 0 ? (
+                  <div className="wdoor-catalog-loading">Memuat daftar arsip wdoor…</div>
                 ) : (
                   <div className="wdoor-archive-grid">
                     {catalog.map((item) => {
