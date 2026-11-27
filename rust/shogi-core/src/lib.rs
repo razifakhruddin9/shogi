@@ -6,6 +6,25 @@ pub mod types;
 #[cfg(target_arch = "wasm32")]
 use wasm_bindgen::prelude::*;
 
+pub fn position_from_sfen_and_moves(
+    sfen_str: &str,
+    moves_usi: &[String],
+) -> Result<types::ShogiPosition, String> {
+    let resolved = if sfen_str.trim().is_empty() || sfen_str.trim() == "startpos" {
+        types::INITIAL_SFEN
+    } else {
+        sfen_str.trim()
+    };
+    let mut pos = sfen::parse_sfen(resolved)?;
+    for usi in moves_usi {
+        let Some(mv) = shogi::find_legal_move_by_usi(&pos, usi) else {
+            break;
+        };
+        pos = shogi::apply_move(&pos, &mv);
+    }
+    Ok(pos)
+}
+
 #[cfg(target_arch = "wasm32")]
 #[wasm_bindgen]
 pub fn wasm_parse_sfen_json(sfen_str: &str) -> Result<String, JsValue> {
@@ -54,6 +73,50 @@ pub fn wasm_material_balance_json(sfen_str: &str) -> Result<String, JsValue> {
     let pos = sfen::parse_sfen(sfen_str).map_err(|e| JsValue::from_str(&e))?;
     let bal = shogi::get_material_balance(&pos);
     serde_json::to_string(&bal).map_err(|e| JsValue::from_str(&e.to_string()))
+}
+
+#[cfg(target_arch = "wasm32")]
+#[wasm_bindgen]
+pub fn wasm_analyze_multipv_json(
+    sfen_str: &str,
+    moves_json: &str,
+    max_depth: u32,
+    max_nodes: u32,
+    multi_pv: u32,
+) -> Result<String, JsValue> {
+    let moves_usi: Vec<String> = if moves_json.trim().is_empty() {
+        Vec::new()
+    } else {
+        serde_json::from_str(moves_json).map_err(|e| JsValue::from_str(&e.to_string()))?
+    };
+    let pos =
+        position_from_sfen_and_moves(sfen_str, &moves_usi).map_err(|e| JsValue::from_str(&e))?;
+    let res = ai::analyze_multipv(&pos, max_depth, u64::from(max_nodes), multi_pv);
+    serde_json::to_string(&res).map_err(|e| JsValue::from_str(&e.to_string()))
+}
+
+#[cfg(target_arch = "wasm32")]
+#[wasm_bindgen]
+pub fn wasm_review_game_json(
+    initial_sfen: &str,
+    moves_json: &str,
+    max_depth: u32,
+    max_nodes_per_ply: u32,
+) -> Result<String, JsValue> {
+    let moves_usi: Vec<String> = if moves_json.trim().is_empty() {
+        Vec::new()
+    } else {
+        serde_json::from_str(moves_json).map_err(|e| JsValue::from_str(&e.to_string()))?
+    };
+    let initial_pos =
+        position_from_sfen_and_moves(initial_sfen, &[]).map_err(|e| JsValue::from_str(&e))?;
+    let review = ai::review_game(
+        &initial_pos,
+        &moves_usi,
+        max_depth,
+        u64::from(max_nodes_per_ply),
+    );
+    serde_json::to_string(&review).map_err(|e| JsValue::from_str(&e.to_string()))
 }
 
 #[cfg(test)]
@@ -145,6 +208,59 @@ mod tests {
             Some("G*5b")
         );
         assert_eq!(eval.mate_in, Some(1));
+    }
+
+    #[test]
+    fn turbo_multipv_finds_mate_and_opening_lines_and_review() {
+        let mate_pos = parse_sfen("4k4/9/4P4/9/9/9/9/9/4K4 b G 1").expect("valid sfen");
+        let mate_eval = ai::analyze_multipv(&mate_pos, 3, 80_000, 3);
+        assert_eq!(mate_eval.best_move_usi.as_deref(), Some("G*5b"));
+        assert_eq!(mate_eval.mate_in_from_turn, Some(1));
+        assert!(!mate_eval.multi_pv_lines.is_empty());
+
+        let start = position_from_sfen_and_moves("startpos", &[]).expect("startpos");
+        let opening = ai::analyze_multipv(&start, 3, 120_000, 3);
+        assert_eq!(opening.multi_pv_lines.len(), 3);
+        assert!(opening.best_move_usi.is_some());
+        assert!(opening.multi_pv_lines[0].score_cp >= opening.multi_pv_lines[1].score_cp);
+        assert!(opening.multi_pv_lines[1].score_cp >= opening.multi_pv_lines[2].score_cp);
+
+        let sample_moves = vec![
+            "7g7f".to_string(),
+            "3c3d".to_string(),
+            "2g2f".to_string(),
+            "8c8d".to_string(),
+        ];
+        let review = ai::review_game(&start, &sample_moves, 2, 20_000);
+        assert_eq!(review.plies.len(), 5);
+        assert_eq!(review.plies[0].turn, Side::Black);
+        assert_eq!(review.plies[1].turn, Side::White);
+        assert!(review.plies[0].best_move_usi.is_some());
+    }
+
+    #[test]
+    fn multipv_engine_finds_mate_and_three_opening_lines() {
+        let mate_pos = parse_sfen("4k4/9/4P4/9/9/9/9/9/4K4 b G 1").expect("valid sfen");
+        let mate_out = ai::analyze_multipv(&mate_pos, 3, 150_000, 1);
+        assert_eq!(mate_out.best_move_usi.as_deref(), Some("G*5b"));
+        assert_eq!(mate_out.mate_in_from_turn, Some(1));
+
+        let open_pos =
+            position_from_sfen_and_moves("startpos", &["7g7f".to_string(), "3c3d".to_string()])
+                .expect("valid startpos + opening moves");
+        assert_eq!(open_pos.turn, Side::Black);
+        let open_out = ai::analyze_multipv(&open_pos, 3, 250_000, 3);
+        assert_eq!(open_out.multi_pv_lines.len(), 3);
+        assert!(open_out.depth >= 2);
+        assert!(open_out.seldepth >= open_out.depth);
+        let first_moves: Vec<&str> = open_out
+            .multi_pv_lines
+            .iter()
+            .filter_map(|l| l.pv.first().map(String::as_str))
+            .collect();
+        assert_eq!(first_moves.len(), 3);
+        assert_ne!(first_moves[0], first_moves[1]);
+        assert_ne!(first_moves[1], first_moves[2]);
     }
 
     #[derive(Deserialize)]

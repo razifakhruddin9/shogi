@@ -2,6 +2,47 @@
 
 /**
  * @param {string} sfen_str
+ * @param {string} moves_json
+ * @param {number} max_depth
+ * @param {number} max_nodes
+ * @param {number} multi_pv
+ * @returns {string}
+ */
+export function wasm_analyze_multipv_json(sfen_str, moves_json, max_depth, max_nodes, multi_pv) {
+    let deferred7_0;
+    let deferred7_1;
+    try {
+        const val3 = +max_depth;
+        const val4 = +max_nodes;
+        const val5 = +multi_pv;
+        let ptr0, len0, ptr1, len1;
+        try {
+            ptr0 = passStringToWasm0(sfen_str, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+            len0 = WASM_VECTOR_LEN;
+            ptr1 = passStringToWasm0(moves_json, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+            len1 = WASM_VECTOR_LEN;
+        } catch (e) {
+            if (ptr1) { wasm.__wbindgen_free(ptr1, len1 * 1, 1); }
+            if (ptr0) { wasm.__wbindgen_free(ptr0, len0 * 1, 1); }
+            throw e;
+        }
+        const ret = wasm.wasm_analyze_multipv_json(ptr0, len0, ptr1, len1, val3, val4, val5);
+        var ptr6 = ret[0];
+        var len6 = ret[1];
+        if (ret[3]) {
+            ptr6 = 0; len6 = 0;
+            throw takeFromExternrefTable0(ret[2]);
+        }
+        deferred7_0 = ptr6;
+        deferred7_1 = len6;
+        return getStringFromWasm0(ptr6, len6);
+    } finally {
+        wasm.__wbindgen_free(deferred7_0, deferred7_1, 1);
+    }
+}
+
+/**
+ * @param {string} sfen_str
  * @returns {number}
  */
 export function wasm_evaluate_sfen(sfen_str) {
@@ -86,6 +127,45 @@ export function wasm_parse_sfen_json(sfen_str) {
         return getStringFromWasm0(ptr2, len2);
     } finally {
         wasm.__wbindgen_free(deferred3_0, deferred3_1, 1);
+    }
+}
+
+/**
+ * @param {string} initial_sfen
+ * @param {string} moves_json
+ * @param {number} max_depth
+ * @param {number} max_nodes_per_ply
+ * @returns {string}
+ */
+export function wasm_review_game_json(initial_sfen, moves_json, max_depth, max_nodes_per_ply) {
+    let deferred6_0;
+    let deferred6_1;
+    try {
+        const val3 = +max_depth;
+        const val4 = +max_nodes_per_ply;
+        let ptr0, len0, ptr1, len1;
+        try {
+            ptr0 = passStringToWasm0(initial_sfen, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+            len0 = WASM_VECTOR_LEN;
+            ptr1 = passStringToWasm0(moves_json, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+            len1 = WASM_VECTOR_LEN;
+        } catch (e) {
+            if (ptr1) { wasm.__wbindgen_free(ptr1, len1 * 1, 1); }
+            if (ptr0) { wasm.__wbindgen_free(ptr0, len0 * 1, 1); }
+            throw e;
+        }
+        const ret = wasm.wasm_review_game_json(ptr0, len0, ptr1, len1, val3, val4);
+        var ptr5 = ret[0];
+        var len5 = ret[1];
+        if (ret[3]) {
+            ptr5 = 0; len5 = 0;
+            throw takeFromExternrefTable0(ret[2]);
+        }
+        deferred6_0 = ptr5;
+        deferred6_1 = len5;
+        return getStringFromWasm0(ptr5, len5);
+    } finally {
+        wasm.__wbindgen_free(deferred6_0, deferred6_1, 1);
     }
 }
 

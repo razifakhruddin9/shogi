@@ -1,6 +1,8 @@
 /* tslint:disable */
 /* eslint-disable */
 
+export function wasm_analyze_multipv_json(sfen_str: string, moves_json: string, max_depth: number, max_nodes: number, multi_pv: number): string;
+
 export function wasm_evaluate_sfen(sfen_str: string): number;
 
 export function wasm_generate_legal_moves_json(sfen_str: string): string;
@@ -8,6 +10,8 @@ export function wasm_generate_legal_moves_json(sfen_str: string): string;
 export function wasm_material_balance_json(sfen_str: string): string;
 
 export function wasm_parse_sfen_json(sfen_str: string): string;
+
+export function wasm_review_game_json(initial_sfen: string, moves_json: string, max_depth: number, max_nodes_per_ply: number): string;
 
 export function wasm_search_best_move_json(sfen_str: string, max_depth: number, max_nodes: number): string;
 
@@ -17,10 +21,12 @@ export type InitInput = RequestInfo | URL | Response | BufferSource | WebAssembl
 
 export interface InitOutput {
     readonly memory: WebAssembly.Memory;
+    readonly wasm_analyze_multipv_json: (a: number, b: number, c: number, d: number, e: number, f: number, g: number) => [number, number, number, number];
     readonly wasm_evaluate_sfen: (a: number, b: number) => [number, number, number];
     readonly wasm_generate_legal_moves_json: (a: number, b: number) => [number, number, number, number];
     readonly wasm_material_balance_json: (a: number, b: number) => [number, number, number, number];
     readonly wasm_parse_sfen_json: (a: number, b: number) => [number, number, number, number];
+    readonly wasm_review_game_json: (a: number, b: number, c: number, d: number, e: number, f: number) => [number, number, number, number];
     readonly wasm_search_best_move_json: (a: number, b: number, c: number, d: number) => [number, number, number, number];
     readonly wasm_to_sfen: (a: number, b: number, c: number) => [number, number, number, number];
     readonly __wbindgen_externrefs: WebAssembly.Table;

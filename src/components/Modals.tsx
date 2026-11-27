@@ -21,8 +21,6 @@ export interface PlayConfig {
 
 interface PlaySetupModalProps {
   defaultSide: 'b' | 'w' | 'random';
-  usiReady: boolean;
-  onProbeLocalEngine?: () => Promise<boolean>;
   onClose: () => void;
   onStart: (config: PlayConfig) => void;
 }
@@ -81,38 +79,17 @@ const TIME_CONTROLS = [
 
 export const PlaySetupModal: React.FC<PlaySetupModalProps> = ({
   defaultSide,
-  usiReady,
-  onProbeLocalEngine,
   onClose,
   onStart,
 }) => {
   const { t } = useI18n();
   const [mode, setMode] = useState<'bot' | 'local'>('bot');
-  const [selectedBotIdx, setSelectedBotIdx] = useState(() => (usiReady ? 0 : 1));
+  const [selectedBotIdx, setSelectedBotIdx] = useState(0);
   const [timeIdx, setTimeIdx] = useState(2);
   const [side, setSide] = useState<'b' | 'w' | 'random'>(defaultSide);
-  const [probingEngine, setProbingEngine] = useState(false);
-  const [probeMsg, setProbeMsg] = useState('');
 
   const bot = BOTS[Math.min(selectedBotIdx, BOTS.length - 1)];
   const tc = TIME_CONTROLS[timeIdx];
-  const isBlockedOfflineBot = mode === 'bot' && bot.requiresUsi && !usiReady;
-
-  const handleProbeEngine = async () => {
-    if (!onProbeLocalEngine || probingEngine) return;
-    setProbingEngine(true);
-    setProbeMsg('');
-    try {
-      const ok = await onProbeLocalEngine();
-      setProbeMsg(
-        ok
-          ? 'YaneuraOu + Suisho5 terhubung dari bridge lokal!'
-          : 'Engine lokal belum terdeteksi di 127.0.0.1:3891. Jalankan `npm run engine` di PC Anda.',
-      );
-    } finally {
-      setProbingEngine(false);
-    }
-  };
 
   return (
     <div className="modal-backdrop" onClick={onClose}>
@@ -149,55 +126,28 @@ export const PlaySetupModal: React.FC<PlaySetupModalProps> = ({
             <div className="form-group">
               <label className="form-label">{t('play.selectEngine')}</label>
               <div className="bot-grid">
-                {BOTS.map((b, i) => {
-                  const offline = b.requiresUsi && !usiReady;
-                  return (
-                    <button
-                      key={b.name}
-                      type="button"
-                      className={`bot-option ${b.requiresUsi ? 'is-flagship' : ''} ${
-                        offline ? 'is-offline' : ''
-                      } ${selectedBotIdx === i ? 'selected' : ''}`}
-                      onClick={() => {
-                        setSelectedBotIdx(i);
-                        setProbeMsg('');
-                      }}
-                    >
-                      <div className="bot-option-top">
-                        <span className="bot-badge-row">
-                          <span className="bot-name">{b.name}</span>
-                          {b.requiresUsi && (
-                            <span className={`bot-status-pill ${usiReady ? 'online' : 'offline'}`}>
-                              {usiReady ? t('play.online') : t('play.localPc')}
-                            </span>
-                          )}
-                        </span>
-                        <span className="bot-elo">{b.elo}</span>
-                      </div>
-                      <span className="bot-desc">{t(b.descKey)}</span>
-                    </button>
-                  );
-                })}
+                {BOTS.map((b, i) => (
+                  <button
+                    key={b.name}
+                    type="button"
+                    className={`bot-option ${b.requiresUsi ? 'is-flagship' : ''} ${
+                      selectedBotIdx === i ? 'selected' : ''
+                    }`}
+                    onClick={() => setSelectedBotIdx(i)}
+                  >
+                    <div className="bot-option-top">
+                      <span className="bot-badge-row">
+                        <span className="bot-name">{b.name}</span>
+                        {b.requiresUsi && (
+                          <span className="bot-status-pill online">{t('play.online')}</span>
+                        )}
+                      </span>
+                      <span className="bot-elo">{b.elo}</span>
+                    </div>
+                    <span className="bot-desc">{t(b.descKey)}</span>
+                  </button>
+                ))}
               </div>
-
-              {bot.requiresUsi && !usiReady && (
-                <div className="usi-offline-notice">
-                  <div className="usi-offline-text">{t('play.offlineNotice')}</div>
-                  <div className="usi-offline-actions">
-                    <button
-                      type="button"
-                      className="secondary-btn"
-                      onClick={() => void handleProbeEngine()}
-                      disabled={probingEngine}
-                    >
-                      {probingEngine
-                        ? t('play.checkingLocalEngine')
-                        : t('play.checkLocalEngine')}
-                    </button>
-                    {probeMsg && <span className="usi-probe-msg">{probeMsg}</span>}
-                  </div>
-                </div>
-              )}
             </div>
           )}
 
@@ -254,7 +204,6 @@ export const PlaySetupModal: React.FC<PlaySetupModalProps> = ({
           <button
             type="button"
             className="primary-solid-btn"
-            disabled={isBlockedOfflineBot}
             onClick={() =>
               onStart({
                 mode,

@@ -266,8 +266,8 @@ export const ShellChrome: React.FC<ShellChromeProps> = ({
             className={`engine-status-pill ${usiReady ? 'online' : ''}`}
             title={
               usiReady
-                ? 'Connected to YaneuraOu V9.00Git 64AVX2 + Suisho5 (nn.bin)'
-                : 'Using built-in browser Web Worker engine (run npm run engine for YaneuraOu + Suisho5)'
+                ? 'YaneuraOu + Suisho5 Engine Online (Vercel Rust/WASM / Local AVX2)'
+                : 'Built-in Rust/WASM Browser Engine Active'
             }
           >
             <span className={`status-dot ${usiReady ? 'online' : ''}`} />

@@ -398,8 +398,8 @@ export const ShogiBoardArena: React.FC<ShogiBoardArenaProps> = ({
     if (!shouldAnalyze) return;
 
     const useYaneuraOu =
-      usiReady &&
-      (!shouldBotMove || tabState.playConfig?.engineKind === 'yaneuraou');
+      (usiReady && (!shouldBotMove || tabState.playConfig?.engineKind === 'yaneuraou')) ||
+      (shouldBotMove && tabState.playConfig?.engineKind === 'yaneuraou');
 
     const reqId = ++requestIdRef.current;
     let cancelled = false;
@@ -445,14 +445,22 @@ export const ShogiBoardArena: React.FC<ShogiBoardArenaProps> = ({
       const botElo = tabState.playConfig?.botElo ?? 1600;
       const maxDepth =
         tabState.mode === 'analysis'
-          ? 3
-          : botElo <= 800
-            ? 1
-            : botElo <= 1300
-              ? 2
-              : 3;
+          ? 4
+          : botElo >= 2400
+            ? 4
+            : botElo <= 800
+              ? 1
+              : botElo <= 1300
+                ? 2
+                : 3;
       const timeLimitMs =
-        tabState.mode === 'analysis' ? 650 : botElo >= 1800 ? 700 : 380;
+        tabState.mode === 'analysis'
+          ? 650
+          : botElo >= 2400
+            ? 850
+            : botElo >= 1800
+              ? 700
+              : 380;
 
       const handleMsg = (e: MessageEvent<{ id: number; result: EngineEvaluation }>) => {
         if (e.data.id !== reqId || cancelled) return;

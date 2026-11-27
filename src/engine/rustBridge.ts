@@ -1,6 +1,8 @@
 import { toSfen } from './sfen';
+import { findLegalMoveByUsi } from './shogi';
 import { EngineEvaluation, ShogiMove, ShogiPosition } from './types';
 import initWasm, {
+  wasm_analyze_multipv_json,
   wasm_evaluate_sfen,
   wasm_generate_legal_moves_json,
   wasm_material_balance_json,
@@ -91,6 +93,31 @@ export function rustSearchBestMove(
 
   // Scale node budget proportionally to timeLimitMs (Rust/WASM explores far faster than JS)
   const maxNodes = Math.max(20_000, Math.min(2_500_000, Math.round(timeLimitMs * 1800)));
-  const json = wasm_search_best_move_json(toSfen(pos, true), maxDepth, maxNodes);
+  const sfen = toSfen(pos, true);
+
+  // Flagship 2800 tier uses upgraded Turbo TT + Quiescence search
+  if (elo >= 2400) {
+    const raw = JSON.parse(
+      wasm_analyze_multipv_json(sfen, '[]', Math.max(maxDepth, 4), Math.min(maxNodes, 350_000), 1),
+    ) as {
+      depth: number;
+      nodes: number;
+      scoreCpFromTurn: number;
+      mateInFromTurn?: number;
+      bestMoveUsi?: string;
+      pv: string[];
+    };
+    const sign = pos.turn === 'b' ? 1 : -1;
+    return {
+      scoreCp: raw.scoreCpFromTurn * sign,
+      mateIn: raw.mateInFromTurn !== undefined ? raw.mateInFromTurn * sign : undefined,
+      bestMove: raw.bestMoveUsi ? findLegalMoveByUsi(pos, raw.bestMoveUsi) : undefined,
+      pv: raw.pv,
+      depth: raw.depth,
+      nodes: raw.nodes,
+    };
+  }
+
+  const json = wasm_search_best_move_json(sfen, maxDepth, maxNodes);
   return JSON.parse(json) as EngineEvaluation;
 }
