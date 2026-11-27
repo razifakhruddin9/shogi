@@ -9,7 +9,9 @@
     "start": "node server/usiServer.mjs",
     "build": "tsc -b && vite build",
     "preview": "vite preview",
-    "test": "vitest run"
+    "test": "vitest run",
+    "rust:test": "cargo test --manifest-path rust/shogi-core/Cargo.toml",
+    "rust:wasm": "wasm-pack build rust/shogi-core --target web --out-dir ../../src/engine/wasm --release --no-pack"
   },
   "dependencies": {
     "lucide-react": "^0.511.0",

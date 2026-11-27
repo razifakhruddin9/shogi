@@ -16,5 +16,9 @@
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true
   },
-  "include": ["src"]
+  "include": ["src"],
+  "exclude": [
+    "src/engine/__tests__/recordCases.test.ts",
+    "src/engine/__tests__/rustWasmParity.test.ts"
+  ]
 }

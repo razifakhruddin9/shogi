@@ -4,5 +4,6 @@ dist/
 .git/
 database-cache/
 engine-bin/
+rust/*/target/
 *.tsbuildinfo
 *.log
