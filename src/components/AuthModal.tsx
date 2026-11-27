@@ -19,7 +19,6 @@ import {
   triggerGoogleAccountChooser,
 } from '../engine/googleAuth';
 import { useI18n } from '../i18n';
-import { LanguagePicker } from './LanguagePicker';
 import { PlayerProfile } from './ShellChrome';
 
 interface StoredAccount {
@@ -738,7 +737,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
             <span className="shell-app-name">Shogi Studio</span>
           </div>
           <div className="shell-titlebar-right">
-            <LanguagePicker compact={false} />
+            <span className="studio-tag">{t('auth.loginPill')}</span>
           </div>
         </header>
         <main className="auth-fullpage-canvas">{cardContent}</main>

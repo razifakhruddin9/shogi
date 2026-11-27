@@ -13,7 +13,6 @@ import {
   X,
 } from 'lucide-react';
 import { useI18n } from '../i18n';
-import { LanguagePicker } from './LanguagePicker';
 import { ShogiKomaIcon } from './ShogiKomaIcon';
 
 export type WorkspaceTabKind =
@@ -263,8 +262,6 @@ export const ShellChrome: React.FC<ShellChromeProps> = ({
         </div>
 
         <div className="shell-titlebar-right">
-          <LanguagePicker compact />
-
           <div
             className={`engine-status-pill ${usiReady ? 'online' : ''}`}
             title={

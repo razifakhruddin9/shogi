@@ -6,7 +6,7 @@ import {
   ParsedDatabaseGame,
   parseDatabaseImport,
 } from '../engine/kifuParser';
-import { LocaleCode, SUPPORTED_LOCALES, useI18n } from '../i18n';
+import { LocaleCode, SUPPORTED_LOCALES, TranslationKey, useI18n } from '../i18n';
 import { PlayerProfile } from './ShellChrome';
 
 export interface PlayConfig {
@@ -27,41 +27,47 @@ interface PlaySetupModalProps {
   onStart: (config: PlayConfig) => void;
 }
 
-const BOTS = [
+const BOTS: {
+  name: string;
+  elo: number;
+  engineKind: 'yaneuraou' | 'browser';
+  requiresUsi: boolean;
+  descKey: TranslationKey;
+}[] = [
   {
     name: 'YaneuraOu + Suisho5',
     elo: 2800,
-    engineKind: 'yaneuraou' as const,
+    engineKind: 'yaneuraou',
     requiresUsi: true,
-    desc: 'NNUE HalfKP-256 AVX2 search + Suisho5 weights (450ms/move).',
+    descKey: 'bot.yaneuraou.desc',
   },
   {
     name: 'Tanuki Novice',
     elo: 700,
-    engineKind: 'browser' as const,
+    engineKind: 'browser',
     requiresUsi: false,
-    desc: 'Friendly beginner bot with occasional slips.',
+    descKey: 'bot.tanuki.desc',
   },
   {
     name: 'Kenshin Club',
     elo: 1200,
-    engineKind: 'browser' as const,
+    engineKind: 'browser',
     requiresUsi: false,
-    desc: 'Solid tactical awareness and basic castle sense.',
+    descKey: 'bot.kenshin.desc',
   },
   {
     name: 'Habu Master',
     elo: 1600,
-    engineKind: 'browser' as const,
+    engineKind: 'browser',
     requiresUsi: false,
-    desc: 'Balanced tactical & positional 3-ply search.',
+    descKey: 'bot.habu.desc',
   },
   {
     name: 'Meijin Engine',
     elo: 1950,
-    engineKind: 'browser' as const,
+    engineKind: 'browser',
     requiresUsi: false,
-    desc: 'Deep browser alpha-beta search with sharp endgame calculation.',
+    descKey: 'bot.meijin.desc',
   },
 ];
 
@@ -168,7 +174,7 @@ export const PlaySetupModal: React.FC<PlaySetupModalProps> = ({
                         </span>
                         <span className="bot-elo">{b.elo}</span>
                       </div>
-                      <span className="bot-desc">{b.desc}</span>
+                      <span className="bot-desc">{t(b.descKey)}</span>
                     </button>
                   );
                 })}
@@ -176,13 +182,7 @@ export const PlaySetupModal: React.FC<PlaySetupModalProps> = ({
 
               {bot.requiresUsi && !usiReady && (
                 <div className="usi-offline-notice">
-                  <div className="usi-offline-text">
-                    <strong>YaneuraOu + Suisho5</strong> berjalan lokal memakai binary AVX2
-                    &amp; bobot NNUE 64 MB (tidak dapat berjalan langsung di server Vercel).
-                    Jalankan <code>npm run engine</code> di PC Anda lalu klik{' '}
-                    <strong>{t('play.checkLocalEngine')}</strong>, atau pilih{' '}
-                    <strong>Meijin Engine (1950)</strong>.
-                  </div>
+                  <div className="usi-offline-text">{t('play.offlineNotice')}</div>
                   <div className="usi-offline-actions">
                     <button
                       type="button"
@@ -211,7 +211,7 @@ export const PlaySetupModal: React.FC<PlaySetupModalProps> = ({
                   className={`pill-choice ${timeIdx === i ? 'selected' : ''}`}
                   onClick={() => setTimeIdx(i)}
                 >
-                  {tItem.label}
+                  {tItem.minutes === 0 ? t('play.unlimited') : tItem.label}
                 </button>
               ))}
             </div>
@@ -233,7 +233,7 @@ export const PlaySetupModal: React.FC<PlaySetupModalProps> = ({
                   className={side === 'random' ? 'active' : ''}
                   onClick={() => setSide('random')}
                 >
-                  Random
+                  {t('play.random')}
                 </button>
                 <button
                   type="button"
@@ -675,9 +675,7 @@ export const ImportModal: React.FC<ImportModalProps> = ({
               )}
 
               <div className="form-group">
-                <label className="form-label">
-                  Arsip Tahunan Floodgate (klik untuk download &amp; masukkan ke database)
-                </label>
+                <label className="form-label">{t('import.yearlyArchives')}</label>
                 {backendOnline === false && (
                   <div className="db-drop-hint" style={{ marginBottom: 6 }}>
                     Endpoint `/api/wdoor/catalog` tidak merespons JSON — daftar arsip
@@ -720,7 +718,7 @@ export const ImportModal: React.FC<ImportModalProps> = ({
           ) : (
             <>
               <div className="form-group">
-                <label className="form-label">Upload Database Files</label>
+                <label className="form-label">{t('import.uploadFiles')}</label>
                 <input
                   ref={fileRef}
                   type="file"
@@ -738,12 +736,12 @@ export const ImportModal: React.FC<ImportModalProps> = ({
                   onClick={() => fileRef.current?.click()}
                 >
                   <FileUp size={15} />
-                  <span>Choose .kif / .ki2 / .csa / .sfen files (Multi-file supported)</span>
+                  <span>{t('import.chooseFiles')}</span>
                 </button>
               </div>
 
               <div className="form-group">
-                <label className="form-label">Format</label>
+                <label className="form-label">{t('import.format')}</label>
                 <div className="pill-options">
                   {(['auto', 'kif', 'ki2', 'csa', 'sfen'] as const).map((fmt) => (
                     <button
@@ -752,14 +750,14 @@ export const ImportModal: React.FC<ImportModalProps> = ({
                       className={`pill-choice ${format === fmt ? 'selected' : ''}`}
                       onClick={() => setFormat(fmt)}
                     >
-                      {fmt === 'auto' ? 'Auto Detect' : `.${fmt}`}
+                      {fmt === 'auto' ? t('import.autoDetect') : `.${fmt}`}
                     </button>
                   ))}
                 </div>
               </div>
 
               <div className="form-group">
-                <label className="form-label">Custom Title (optional)</label>
+                <label className="form-label">{t('import.customTitle')}</label>
                 <input
                   type="text"
                   className="studio-input"
@@ -770,7 +768,7 @@ export const ImportModal: React.FC<ImportModalProps> = ({
               </div>
 
               <div className="form-group">
-                <label className="form-label">Paste KIF, KI2, CSA, or SFEN Content</label>
+                <label className="form-label">{t('import.pasteContent')}</label>
                 <textarea
                   className="studio-textarea mono"
                   rows={5}
