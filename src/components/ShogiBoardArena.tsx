@@ -44,6 +44,7 @@ import {
   analyzeWithYaneuraOu,
   UsiAnalysisResult,
 } from '../engine/usiClient';
+import { TranslationKey, useI18n } from '../i18n';
 import { GameReviewPanel } from './GameReviewPanel';
 import { PlayConfig } from './Modals';
 import { PlayerProfile } from './ShellChrome';
@@ -155,6 +156,7 @@ export const ShogiBoardArena: React.FC<ShogiBoardArenaProps> = ({
   );
 
   // Build initial timeline from preloadMovesUsi if provided
+  const { t } = useI18n();
   const initialTimeline = useMemo(() => {
     const positions: ShogiPosition[] = [parseSfen(startSfen)];
     const moves: ShogiMove[] = [];
@@ -1021,7 +1023,7 @@ export const ShogiBoardArena: React.FC<ShogiBoardArenaProps> = ({
                               <span
                                 className="board-move-badge"
                                 style={{ backgroundColor: destClsBadge.meta.color }}
-                                title={`${destClsBadge.meta.label} (${destClsBadge.cpLoss} cp loss)`}
+                                title={`${t(`review.cat.${destClsBadge.category}` as TranslationKey)} (${destClsBadge.cpLoss} cp)`}
                               >
                                 {destClsBadge.meta.symbol}
                               </span>
@@ -1281,11 +1283,7 @@ export const ShogiBoardArena: React.FC<ShogiBoardArenaProps> = ({
             >
               <BarChart3 size={13} />
               <span>
-                {reviewLoading
-                  ? 'Menyusun Ulasan Permainan…'
-                  : gameReview
-                    ? 'Analisis Ulang Ulasan Permainan'
-                    : 'Buat Ulasan Permainan'}
+                {reviewLoading ? t('arena.runningReview') : t('arena.runReview')}
               </span>
             </button>
           )}
@@ -1299,7 +1297,7 @@ export const ShogiBoardArena: React.FC<ShogiBoardArenaProps> = ({
             className={`sidebar-subtab ${sidebarTab === 'kifu' ? 'active' : ''}`}
             onClick={() => setSidebarTab('kifu')}
           >
-            Daftar Langkah ({moves.length})
+            {t('arena.kifuTab')} ({moves.length})
           </button>
           <button
             type="button"
@@ -1311,7 +1309,7 @@ export const ShogiBoardArena: React.FC<ShogiBoardArenaProps> = ({
               }
             }}
           >
-            Ulasan Permainan
+            {t('arena.reviewTab')}
           </button>
         </div>
 
@@ -1326,7 +1324,7 @@ export const ShogiBoardArena: React.FC<ShogiBoardArenaProps> = ({
                 onClick={handleRematch}
               >
                 <RotateCcw size={13} />
-                <span>Rematch</span>
+                <span>{t('arena.rematch')}</span>
               </button>
             </div>
           </div>
@@ -1355,9 +1353,7 @@ export const ShogiBoardArena: React.FC<ShogiBoardArenaProps> = ({
           </div>
           <div className="kifu-scroll">
             {moveRows.length === 0 ? (
-              <div className="kifu-empty">
-                Make a move on the 9×9 board or drop a captured piece from your Komadai.
-              </div>
+              <div className="kifu-empty">{t('arena.moveEmpty')}</div>
             ) : (
               moveRows.map((row) => {
                 const sRev = getPlyClassification(row.sentePly);
@@ -1499,7 +1495,7 @@ export const ShogiBoardArena: React.FC<ShogiBoardArenaProps> = ({
               title={showHintArrow ? 'Hide Best Move Arrow' : 'Show Best Move Arrow'}
             >
               <Lightbulb size={13} />
-              <span>{showHintArrow ? 'Best On' : 'Best'}</span>
+              <span>{showHintArrow ? t('arena.bestOn') : t('arena.best')}</span>
             </button>
 
             <button
@@ -1526,20 +1522,20 @@ export const ShogiBoardArena: React.FC<ShogiBoardArenaProps> = ({
                     reason: `${winner === 'b' ? 'Sente' : 'Gote'} wins by Resignation`,
                   });
                 }}
-                title="Resign Match"
+                title={t('arena.resign')}
               >
                 <Flag size={13} />
-                <span>Resign</span>
+                <span>{t('arena.resign')}</span>
               </button>
             ) : (
               <button
                 type="button"
                 className="action-pill-btn"
                 onClick={handleRematch}
-                title="Reset Board"
+                title={t('arena.newGame')}
               >
                 <RotateCcw size={13} />
-                <span>Reset</span>
+                <span>{t('arena.newGame')}</span>
               </button>
             )}
           </div>

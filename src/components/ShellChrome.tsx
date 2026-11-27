@@ -12,6 +12,8 @@ import {
   User,
   X,
 } from 'lucide-react';
+import { useI18n } from '../i18n';
+import { LanguagePicker } from './LanguagePicker';
 import { ShogiKomaIcon } from './ShogiKomaIcon';
 
 export type WorkspaceTabKind =
@@ -88,6 +90,7 @@ export const ShellChrome: React.FC<ShellChromeProps> = ({
   profile,
   children,
 }) => {
+  const { t } = useI18n();
   const [openMenu, setOpenMenu] = useState<'file' | 'view' | 'help' | null>(null);
   const menuRef = useRef<HTMLDivElement>(null);
 
@@ -123,7 +126,7 @@ export const ShellChrome: React.FC<ShellChromeProps> = ({
                 className={`menu-trigger ${openMenu === 'file' ? 'active' : ''}`}
                 onClick={() => setOpenMenu(openMenu === 'file' ? null : 'file')}
               >
-                File
+                {t('menu.file')}
               </button>
               {openMenu === 'file' && (
                 <div className="menu-dropdown">
@@ -134,7 +137,7 @@ export const ShellChrome: React.FC<ShellChromeProps> = ({
                       setOpenMenu(null);
                     }}
                   >
-                    <span>New Tab</span>
+                    <span>{t('menu.newTab')}</span>
                     <kbd>Ctrl+T</kbd>
                   </button>
                   <button
@@ -144,7 +147,7 @@ export const ShellChrome: React.FC<ShellChromeProps> = ({
                       setOpenMenu(null);
                     }}
                   >
-                    <span>New Shogi Match...</span>
+                    <span>{t('menu.newMatch')}</span>
                   </button>
                   <button
                     type="button"
@@ -153,7 +156,7 @@ export const ShellChrome: React.FC<ShellChromeProps> = ({
                       setOpenMenu(null);
                     }}
                   >
-                    <span>New Analysis Board</span>
+                    <span>{t('menu.newAnalysis')}</span>
                   </button>
                   <div className="menu-sep" />
                   <button
@@ -163,7 +166,7 @@ export const ShellChrome: React.FC<ShellChromeProps> = ({
                       setOpenMenu(null);
                     }}
                   >
-                    <span>Import KIF / KI2 / CSA / SFEN...</span>
+                    <span>{t('menu.import')}</span>
                   </button>
                   <button
                     type="button"
@@ -172,7 +175,7 @@ export const ShellChrome: React.FC<ShellChromeProps> = ({
                       setOpenMenu(null);
                     }}
                   >
-                    <span>{databaseOpen ? 'Hide Game Database' : 'Open Game Database'}</span>
+                    <span>{databaseOpen ? t('menu.hideDb') : t('menu.openDb')}</span>
                   </button>
                 </div>
               )}
@@ -184,7 +187,7 @@ export const ShellChrome: React.FC<ShellChromeProps> = ({
                 className={`menu-trigger ${openMenu === 'view' ? 'active' : ''}`}
                 onClick={() => setOpenMenu(openMenu === 'view' ? null : 'view')}
               >
-                View
+                {t('menu.view')}
               </button>
               {openMenu === 'view' && (
                 <div className="menu-dropdown">
@@ -196,7 +199,7 @@ export const ShellChrome: React.FC<ShellChromeProps> = ({
                     }}
                   >
                     <span>
-                      Board Style: {boardTheme === 'kaya' ? 'Kaya Wood' : 'Classic Walnut'}
+                      {t('menu.boardStyle')}: {boardTheme === 'kaya' ? 'Kaya Wood' : 'Classic Walnut'}
                     </span>
                   </button>
                   <button
@@ -207,7 +210,7 @@ export const ShellChrome: React.FC<ShellChromeProps> = ({
                     }}
                   >
                     <span>
-                      Piece Letter Hints: {showEnglishHints ? 'On' : 'Off'}
+                      {t('menu.pieceHints')}: {showEnglishHints ? t('settings.enabled') : t('settings.disabled')}
                     </span>
                   </button>
                   <button
@@ -218,7 +221,7 @@ export const ShellChrome: React.FC<ShellChromeProps> = ({
                     }}
                   >
                     <span>
-                      Notation: {notationMode === 'kifu' ? 'Japanese Kifu (▲7六歩)' : 'Western (P-7f)'}
+                      {t('menu.notation')}: {notationMode === 'kifu' ? 'Japanese Kifu (▲7六歩)' : 'Western (P-7f)'}
                     </span>
                   </button>
                 </div>
@@ -231,7 +234,7 @@ export const ShellChrome: React.FC<ShellChromeProps> = ({
                 className={`menu-trigger ${openMenu === 'help' ? 'active' : ''}`}
                 onClick={() => setOpenMenu(openMenu === 'help' ? null : 'help')}
               >
-                Help
+                {t('menu.help')}
               </button>
               {openMenu === 'help' && (
                 <div className="menu-dropdown">
@@ -242,7 +245,7 @@ export const ShellChrome: React.FC<ShellChromeProps> = ({
                       setOpenMenu(null);
                     }}
                   >
-                    <span>Shogi Rules & Drops Guide</span>
+                    <span>{t('menu.rulesGuide')}</span>
                   </button>
                   <button
                     type="button"
@@ -251,7 +254,7 @@ export const ShellChrome: React.FC<ShellChromeProps> = ({
                       setOpenMenu(null);
                     }}
                   >
-                    <span>Studio Preferences</span>
+                    <span>{t('menu.preferences')}</span>
                   </button>
                 </div>
               )}
@@ -260,6 +263,8 @@ export const ShellChrome: React.FC<ShellChromeProps> = ({
         </div>
 
         <div className="shell-titlebar-right">
+          <LanguagePicker compact />
+
           <div
             className={`engine-status-pill ${usiReady ? 'online' : ''}`}
             title={
@@ -269,7 +274,7 @@ export const ShellChrome: React.FC<ShellChromeProps> = ({
             }
           >
             <span className={`status-dot ${usiReady ? 'online' : ''}`} />
-            <span>{usiReady ? 'YaneuraOu + Suisho5' : 'Browser Engine'}</span>
+            <span>{usiReady ? 'YaneuraOu + Suisho5' : t('engine.browser')}</span>
           </div>
 
           <button
@@ -279,7 +284,7 @@ export const ShellChrome: React.FC<ShellChromeProps> = ({
             title={
               profile.loggedIn
                 ? `${profile.username} (${profile.email ?? 'Signed in'})`
-                : 'Masuk dengan Google atau Email'
+                : t('auth.modalTitle')
             }
           >
             {profile.loggedIn && profile.avatarUrl ? (
@@ -293,7 +298,7 @@ export const ShellChrome: React.FC<ShellChromeProps> = ({
               <span className={`status-dot ${profile.loggedIn ? 'online' : ''}`} />
             )}
             <span className="profile-name">
-              {profile.loggedIn ? profile.username : 'Masuk / Login'}
+              {profile.loggedIn ? profile.username : t('auth.loginPill')}
             </span>
             <span className="profile-elo">{profile.elo}</span>
           </button>
@@ -362,7 +367,7 @@ export const ShellChrome: React.FC<ShellChromeProps> = ({
               type="button"
               className={`rail-btn ${!databaseOpen && activeTab?.kind === 'home' ? 'active' : ''}`}
               onClick={() => onOpenQuickAction('home')}
-              title="Home / New Tab"
+              title={t('rail.home')}
             >
               <Home size={20} strokeWidth={1.75} />
             </button>
@@ -370,7 +375,7 @@ export const ShellChrome: React.FC<ShellChromeProps> = ({
               type="button"
               className={`rail-btn ${!databaseOpen && activeTab?.kind === 'play' ? 'active' : ''}`}
               onClick={() => onOpenQuickAction('play')}
-              title="Play Shogi Match"
+              title={t('rail.play')}
             >
               <ShogiKomaIcon size={20} strokeWidth={1.75} />
             </button>
@@ -378,7 +383,7 @@ export const ShellChrome: React.FC<ShellChromeProps> = ({
               type="button"
               className={`rail-btn ${!databaseOpen && activeTab?.kind === 'analysis' ? 'active' : ''}`}
               onClick={() => onOpenQuickAction('analysis')}
-              title="Analysis Board & Engine"
+              title={t('rail.analysis')}
             >
               <Cpu size={20} strokeWidth={1.75} />
             </button>
@@ -386,7 +391,7 @@ export const ShellChrome: React.FC<ShellChromeProps> = ({
               type="button"
               className={`rail-btn ${!databaseOpen && activeTab?.kind === 'repertoire' ? 'active' : ''}`}
               onClick={() => onOpenQuickAction('repertoire')}
-              title="Joseki & Openings Repertoire"
+              title={t('rail.repertoire')}
             >
               <BookOpen size={20} strokeWidth={1.75} />
             </button>
@@ -394,7 +399,7 @@ export const ShellChrome: React.FC<ShellChromeProps> = ({
               type="button"
               className={`rail-btn ${!databaseOpen && activeTab?.kind === 'puzzles' ? 'active' : ''}`}
               onClick={() => onOpenQuickAction('puzzles')}
-              title="Tsume-Shogi Puzzles"
+              title={t('rail.puzzles')}
             >
               <Puzzle size={20} strokeWidth={1.75} />
             </button>
@@ -402,7 +407,7 @@ export const ShellChrome: React.FC<ShellChromeProps> = ({
               type="button"
               className={`rail-btn ${databaseOpen ? 'active' : ''}`}
               onClick={onToggleDatabase}
-              title="Game Database (.kif, .ki2, .csa, .sfen)"
+              title={t('rail.database')}
             >
               <Database size={20} strokeWidth={1.75} />
             </button>
@@ -410,7 +415,7 @@ export const ShellChrome: React.FC<ShellChromeProps> = ({
               type="button"
               className="rail-btn"
               onClick={onOpenAuth}
-              title="Player Profile & Calibration"
+              title={t('rail.account')}
             >
               <User size={20} strokeWidth={1.75} />
             </button>
@@ -421,7 +426,7 @@ export const ShellChrome: React.FC<ShellChromeProps> = ({
               type="button"
               className="rail-btn"
               onClick={onOpenSettings}
-              title="Studio Settings"
+              title={t('rail.settings')}
             >
               <Settings size={20} strokeWidth={1.75} />
             </button>

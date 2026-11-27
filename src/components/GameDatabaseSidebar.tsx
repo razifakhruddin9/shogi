@@ -14,6 +14,7 @@ import {
   ParsedDatabaseGame,
   parseDatabaseImport,
 } from '../engine/kifuParser';
+import { useI18n } from '../i18n';
 
 interface GameDatabaseSidebarProps {
   games: ParsedDatabaseGame[];
@@ -42,6 +43,7 @@ export const GameDatabaseSidebar: React.FC<GameDatabaseSidebarProps> = ({
   onClearAll,
   onOpenPasteImport,
 }) => {
+  const { t } = useI18n();
   const [search, setSearch] = useState('');
   const [formatFilter, setFormatFilter] = useState<'all' | DatabaseFormat>('all');
   const [isDragging, setIsDragging] = useState(false);
@@ -106,14 +108,14 @@ export const GameDatabaseSidebar: React.FC<GameDatabaseSidebarProps> = ({
       <div className="db-sidebar-header">
         <div className="db-header-title">
           <Database size={15} className="accent-icon" />
-          <span>Game Database</span>
+          <span>{t('db.title')}</span>
           <span className="recent-count">{games.length}</span>
         </div>
         <button
           type="button"
           className="icon-close-btn"
           onClick={onClose}
-          title="Close Database Sidebar"
+          title={t('menu.hideDb')}
         >
           <X size={15} />
         </button>
@@ -127,7 +129,7 @@ export const GameDatabaseSidebar: React.FC<GameDatabaseSidebarProps> = ({
           onClick={onOpenPasteImport}
         >
           <Globe size={15} />
-          <span>Import Lewat Web / Local</span>
+          <span>{t('db.importBtn')}</span>
         </button>
 
         {games.length > 0 && (
@@ -136,26 +138,24 @@ export const GameDatabaseSidebar: React.FC<GameDatabaseSidebarProps> = ({
               type="button"
               className="ghost-btn-sm"
               onClick={() => downloadDatabaseToDevice(games)}
-              title="Simpan seluruh database ke folder Downloads (.csa)"
+              title={t('db.saveCsa')}
             >
               <Download size={12} />
-              <span>Simpan .csa</span>
+              <span>{t('db.saveCsa')}</span>
             </button>
             <button
               type="button"
               className="ghost-btn-sm"
               onClick={onClearAll}
-              title="Clear all database entries"
+              title={t('db.clear')}
             >
               <Trash2 size={12} />
-              <span>Clear</span>
+              <span>{t('db.clear')}</span>
             </button>
           </div>
         )}
 
-        <div className="db-drop-hint">
-          Tersimpan di perangkat (IndexedDB &amp; Downloads/ShogiStudio)
-        </div>
+        <div className="db-drop-hint">{t('db.storageHint')}</div>
         {importFeedback && <div className="db-feedback">{importFeedback}</div>}
       </div>
 
@@ -168,7 +168,7 @@ export const GameDatabaseSidebar: React.FC<GameDatabaseSidebarProps> = ({
             className="db-search-input"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search player, event, title..."
+            placeholder={t('db.searchPlaceholder')}
           />
           {search && (
             <button

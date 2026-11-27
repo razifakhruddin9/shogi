@@ -15,6 +15,7 @@ import {
 import { parseSfen } from '../engine/sfen';
 import { applyMove, findLegalMoveByUsi } from '../engine/shogi';
 import { HAND_ORDER, ShogiMove, ShogiPosition, Side } from '../engine/types';
+import { useI18n } from '../i18n';
 import { ShogiPieceSvg } from './ShogiPieceSvg';
 
 interface RepertoireViewProps {
@@ -38,6 +39,7 @@ export const RepertoireView: React.FC<RepertoireViewProps> = ({
   notationMode,
   onSendToAnalysis,
 }) => {
+  const { t } = useI18n();
   const [activePhase, setActivePhase] = useState<RepertoirePhase>('joban');
   const [selectedLine, setSelectedLine] = useState<JosekiLine>(
     SHOGI_REPERTOIRE[0],
@@ -150,7 +152,7 @@ export const RepertoireView: React.FC<RepertoireViewProps> = ({
         <div className="panel-section-header">
           <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
             <BookOpen size={15} className="accent-icon" />
-            <span>Kurikulum Repertoire</span>
+            <span>{t('rep.header')}</span>
           </div>
           <span className="mono-pill">
             {completedIds.length}/{SHOGI_REPERTOIRE.length}
@@ -205,7 +207,7 @@ export const RepertoireView: React.FC<RepertoireViewProps> = ({
                   <span className="rep-code">Level {line.level}</span>
                   <span className="rep-cat">
                     {done ? (
-                      <span className="win-text">✓ Selesai</span>
+                      <span className="win-text">✓ {t('rep.done')}</span>
                     ) : (
                       line.ecoCode
                     )}
@@ -343,9 +345,7 @@ export const RepertoireView: React.FC<RepertoireViewProps> = ({
             onClick={() => toggleCompleted(selectedLine.id)}
           >
             <CheckCircle2 size={14} />
-            <span>
-              {isCompleted ? 'Level Selesai Dipelajari' : 'Tandai Level Selesai'}
-            </span>
+            <span>{isCompleted ? t('rep.markedDone') : t('rep.markDone')}</span>
           </button>
           <button
             type="button"
@@ -358,7 +358,7 @@ export const RepertoireView: React.FC<RepertoireViewProps> = ({
               )
             }
           >
-            Analisis dengan YaneuraOu + Suisho5
+            {t('rep.openAnalysis')}
           </button>
         </div>
       </aside>

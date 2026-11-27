@@ -18,6 +18,8 @@ import {
   saveConfiguredGoogleClientId,
   triggerGoogleAccountChooser,
 } from '../engine/googleAuth';
+import { useI18n } from '../i18n';
+import { LanguagePicker } from './LanguagePicker';
 import { PlayerProfile } from './ShellChrome';
 
 interface StoredAccount {
@@ -93,6 +95,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
   onLogout,
   onContinueAsGuest,
 }) => {
+  const { t } = useI18n();
   const [authTab, setAuthTab] = useState<'signin' | 'register'>('signin');
   const [showGoogleSetup, setShowGoogleSetup] = useState(false);
   const [googleClientId, setGoogleClientId] = useState(() =>
@@ -314,7 +317,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
       <div className="modal-backdrop" onClick={onClose}>
         <div className="studio-modal" onClick={(e) => e.stopPropagation()}>
           <div className="modal-header">
-            <h3>Profil Pemain &amp; Kalibrasi</h3>
+            <h3>{t('auth.profileTitle')}</h3>
             <button type="button" className="icon-close-btn" onClick={onClose}>
               <X size={16} />
             </button>
@@ -415,13 +418,13 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                 onClick={onLogout}
               >
                 <LogOut size={13} />
-                <span>Keluar</span>
+                <span>{t('auth.logout')}</span>
               </button>
               <button type="button" className="secondary-btn" onClick={onClose}>
-                Tutup
+                {t('auth.close')}
               </button>
               <button type="submit" className="primary-solid-btn">
-                Simpan Profil
+                {t('auth.saveProfile')}
               </button>
             </div>
           </form>
@@ -444,7 +447,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
             className={isEntryGate ? 'home-logo-img' : 'shell-logo-img'}
           />
           <div>
-            <h3>{isEntryGate ? 'Shogi Studio' : 'Masuk ke Shogi Studio'}</h3>
+            <h3>{isEntryGate ? 'Shogi Studio' : t('auth.modalTitle')}</h3>
             {isEntryGate && (
               <div className="auth-entry-subtitle">
                 Slate Board Game Studio • 9×9 Japanese Chess
@@ -545,10 +548,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
             </div>
           ) : (
             <>
-              <p className="auth-welcome-sub">
-                Masuk menggunakan akun <strong>Google</strong> atau <strong>Email</strong>{' '}
-                untuk menyimpan riwayat partai, skor akurasi, dan progres kurikulum.
-              </p>
+              <p className="auth-welcome-sub">{t('auth.welcome')}</p>
 
               {/* Real Google Sign-In OAuth Account Chooser Trigger */}
               <div className="google-cta-group">
@@ -561,15 +561,15 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                   <GoogleGIcon />
                   <span>
                     {googleBusy
-                      ? 'Membuka pilihan akun Google...'
-                      : 'Lanjutkan dengan Google'}
+                      ? t('auth.googleOpening')
+                      : t('auth.googleContinue')}
                   </span>
                 </button>
                 <div className="google-client-row">
                   <span className="google-status-text">
                     {isValidGoogleClientId(googleClientId)
-                      ? 'Notif Google One Tap & pilih akun aktif'
-                      : 'Butuh Google OAuth Client ID sekali saja'}
+                      ? t('auth.googleActiveNote')
+                      : t('auth.googleNeedClientNote')}
                   </span>
                   <button
                     type="button"
@@ -584,8 +584,8 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                     <Settings size={11} />
                     <span>
                       {isValidGoogleClientId(googleClientId)
-                        ? 'Ubah Client ID'
-                        : 'Atur Client ID'}
+                        ? t('auth.googleChangeClient')
+                        : t('auth.googleSetClient')}
                     </span>
                   </button>
                 </div>
@@ -593,7 +593,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
               </div>
 
               <div className="auth-divider">
-                <span>atau gunakan Email</span>
+                <span>{t('auth.orEmail')}</span>
               </div>
 
               {/* Email Sign-In / Register Tabs */}
@@ -606,7 +606,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                     setError('');
                   }}
                 >
-                  Masuk dengan Email
+                  {t('auth.signInEmail')}
                 </button>
                 <button
                   type="button"
@@ -616,14 +616,14 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                     setError('');
                   }}
                 >
-                  Daftar Akun Email
+                  {t('auth.registerEmail')}
                 </button>
               </div>
 
               <form onSubmit={handleEmailAuth} className="email-auth-form">
                 {authTab === 'register' && (
                   <div className="form-group">
-                    <label className="form-label">Nama Pemain (Handle)</label>
+                    <label className="form-label">{t('auth.handle')}</label>
                     <input
                       type="text"
                       className="studio-input"
@@ -635,7 +635,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                 )}
 
                 <div className="form-group">
-                  <label className="form-label">Email</label>
+                  <label className="form-label">{t('auth.email')}</label>
                   <input
                     type="email"
                     className="studio-input"
@@ -649,7 +649,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                 </div>
 
                 <div className="form-group">
-                  <label className="form-label">Kata Sandi</label>
+                  <label className="form-label">{t('auth.password')}</label>
                   <div className="password-input-wrap">
                     <input
                       type={showPassword ? 'text' : 'password'}
@@ -659,7 +659,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                         setPassword(e.target.value);
                         setError('');
                       }}
-                      placeholder="Minimal 6 karakter"
+                      placeholder={t('auth.passwordPlaceholder')}
                     />
                     <button
                       type="button"
@@ -675,7 +675,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                 {authTab === 'register' && (
                   <div className="form-group">
                     <label className="form-label">
-                      Target Kalibrasi Elo: <strong className="mono">{targetElo}</strong>
+                      {t('auth.targetElo')}: <strong className="mono">{targetElo}</strong>
                     </label>
                     <input
                       type="range"
@@ -698,7 +698,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                 >
                   <Mail size={14} />
                   <span>
-                    {authTab === 'signin' ? 'Masuk dengan Email' : 'Daftar & Masuk'}
+                    {authTab === 'signin' ? t('auth.signInBtn') : t('auth.registerBtn')}
                   </span>
                 </button>
               </form>
@@ -713,12 +713,12 @@ export const AuthModal: React.FC<AuthModalProps> = ({
               className="ghost-btn-sm"
               onClick={onContinueAsGuest}
             >
-              Masuk sebagai Tamu
+              {t('auth.guestBtn')}
             </button>
           )}
           {!isEntryGate && (
             <button type="button" className="secondary-btn" onClick={onClose}>
-              Batal
+              {t('auth.cancel')}
             </button>
           )}
         </div>
@@ -738,7 +738,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
             <span className="shell-app-name">Shogi Studio</span>
           </div>
           <div className="shell-titlebar-right">
-            <span className="studio-tag">Login Diperlukan</span>
+            <LanguagePicker compact={false} />
           </div>
         </header>
         <main className="auth-fullpage-canvas">{cardContent}</main>

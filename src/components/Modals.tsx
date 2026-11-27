@@ -6,6 +6,7 @@ import {
   ParsedDatabaseGame,
   parseDatabaseImport,
 } from '../engine/kifuParser';
+import { LocaleCode, SUPPORTED_LOCALES, useI18n } from '../i18n';
 import { PlayerProfile } from './ShellChrome';
 
 export interface PlayConfig {
@@ -79,6 +80,7 @@ export const PlaySetupModal: React.FC<PlaySetupModalProps> = ({
   onClose,
   onStart,
 }) => {
+  const { t } = useI18n();
   const [mode, setMode] = useState<'bot' | 'local'>('bot');
   const [selectedBotIdx, setSelectedBotIdx] = useState(() => (usiReady ? 0 : 1));
   const [timeIdx, setTimeIdx] = useState(2);
@@ -110,7 +112,7 @@ export const PlaySetupModal: React.FC<PlaySetupModalProps> = ({
     <div className="modal-backdrop" onClick={onClose}>
       <div className="studio-modal" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
-          <h3>New Shogi Match</h3>
+          <h3>{t('play.title')}</h3>
           <button type="button" className="icon-close-btn" onClick={onClose}>
             <X size={16} />
           </button>
@@ -118,28 +120,28 @@ export const PlaySetupModal: React.FC<PlaySetupModalProps> = ({
 
         <div className="modal-body">
           <div className="form-group">
-            <label className="form-label">Opponent Type</label>
+            <label className="form-label">{t('play.opponentType')}</label>
             <div className="segmented-control">
               <button
                 type="button"
                 className={mode === 'bot' ? 'active' : ''}
                 onClick={() => setMode('bot')}
               >
-                Play vs Computer
+                {t('play.vsComputer')}
               </button>
               <button
                 type="button"
                 className={mode === 'local' ? 'active' : ''}
                 onClick={() => setMode('local')}
               >
-                Pass & Play (2P)
+                {t('play.passPlay')}
               </button>
             </div>
           </div>
 
           {mode === 'bot' && (
             <div className="form-group">
-              <label className="form-label">Select Engine Personality</label>
+              <label className="form-label">{t('play.selectEngine')}</label>
               <div className="bot-grid">
                 {BOTS.map((b, i) => {
                   const offline = b.requiresUsi && !usiReady;
@@ -160,7 +162,7 @@ export const PlaySetupModal: React.FC<PlaySetupModalProps> = ({
                           <span className="bot-name">{b.name}</span>
                           {b.requiresUsi && (
                             <span className={`bot-status-pill ${usiReady ? 'online' : 'offline'}`}>
-                              {usiReady ? 'Online' : 'Lokal PC'}
+                              {usiReady ? t('play.online') : t('play.localPc')}
                             </span>
                           )}
                         </span>
@@ -178,8 +180,8 @@ export const PlaySetupModal: React.FC<PlaySetupModalProps> = ({
                     <strong>YaneuraOu + Suisho5</strong> berjalan lokal memakai binary AVX2
                     &amp; bobot NNUE 64 MB (tidak dapat berjalan langsung di server Vercel).
                     Jalankan <code>npm run engine</code> di PC Anda lalu klik{' '}
-                    <strong>Cek Engine Lokal</strong>, atau pilih{' '}
-                    <strong>Meijin Engine (1950)</strong> untuk main langsung di browser.
+                    <strong>{t('play.checkLocalEngine')}</strong>, atau pilih{' '}
+                    <strong>Meijin Engine (1950)</strong>.
                   </div>
                   <div className="usi-offline-actions">
                     <button
@@ -189,8 +191,8 @@ export const PlaySetupModal: React.FC<PlaySetupModalProps> = ({
                       disabled={probingEngine}
                     >
                       {probingEngine
-                        ? 'Memeriksa 127.0.0.1:3891…'
-                        : 'Cek Engine Lokal (127.0.0.1:3891)'}
+                        ? t('play.checkingLocalEngine')
+                        : t('play.checkLocalEngine')}
                     </button>
                     {probeMsg && <span className="usi-probe-msg">{probeMsg}</span>}
                   </div>
@@ -200,16 +202,16 @@ export const PlaySetupModal: React.FC<PlaySetupModalProps> = ({
           )}
 
           <div className="form-group">
-            <label className="form-label">Time Control</label>
+            <label className="form-label">{t('play.timeControl')}</label>
             <div className="pill-options">
-              {TIME_CONTROLS.map((t, i) => (
+              {TIME_CONTROLS.map((tItem, i) => (
                 <button
-                  key={t.label}
+                  key={tItem.label}
                   type="button"
                   className={`pill-choice ${timeIdx === i ? 'selected' : ''}`}
                   onClick={() => setTimeIdx(i)}
                 >
-                  {t.label}
+                  {tItem.label}
                 </button>
               ))}
             </div>
@@ -217,14 +219,14 @@ export const PlaySetupModal: React.FC<PlaySetupModalProps> = ({
 
           {mode === 'bot' && (
             <div className="form-group">
-              <label className="form-label">Play As</label>
+              <label className="form-label">{t('play.playAs')}</label>
               <div className="segmented-control three">
                 <button
                   type="button"
                   className={side === 'b' ? 'active' : ''}
                   onClick={() => setSide('b')}
                 >
-                  ▲ Sente (First)
+                  {t('arena.senteFirst')}
                 </button>
                 <button
                   type="button"
@@ -238,7 +240,7 @@ export const PlaySetupModal: React.FC<PlaySetupModalProps> = ({
                   className={side === 'w' ? 'active' : ''}
                   onClick={() => setSide('w')}
                 >
-                  △ Gote (Second)
+                  {t('arena.goteSecond')}
                 </button>
               </div>
             </div>
@@ -247,7 +249,7 @@ export const PlaySetupModal: React.FC<PlaySetupModalProps> = ({
 
         <div className="modal-footer">
           <button type="button" className="secondary-btn" onClick={onClose}>
-            Cancel
+            {t('auth.cancel')}
           </button>
           <button
             type="button"
@@ -265,7 +267,7 @@ export const PlaySetupModal: React.FC<PlaySetupModalProps> = ({
               })
             }
           >
-            Start Match
+            {t('play.startMatch')}
           </button>
         </div>
       </div>
@@ -343,6 +345,7 @@ export const ImportModal: React.FC<ImportModalProps> = ({
   onClose,
   onImportToDatabase,
 }) => {
+  const { t } = useI18n();
   const [sourceTab, setSourceTab] = useState<'wdoor' | 'local'>('wdoor');
   const [format, setFormat] = useState<'auto' | DatabaseFormat>('auto');
   const [title, setTitle] = useState('');
@@ -571,7 +574,7 @@ export const ImportModal: React.FC<ImportModalProps> = ({
         onClick={(e) => e.stopPropagation()}
       >
         <div className="modal-header">
-          <h3>Import Database Shogi (.kif, .ki2, .csa, .sfen)</h3>
+          <h3>{t('import.title')}</h3>
           <button type="button" className="icon-close-btn" onClick={onClose}>
             <X size={16} />
           </button>
@@ -610,7 +613,7 @@ export const ImportModal: React.FC<ImportModalProps> = ({
                 setError('');
               }}
             >
-              Import Lewat Web
+              {t('import.tabWeb')}
             </button>
             <button
               type="button"
@@ -620,7 +623,7 @@ export const ImportModal: React.FC<ImportModalProps> = ({
                 setError('');
               }}
             >
-              Import Local
+              {t('import.tabLocal')}
             </button>
           </div>
 
@@ -636,13 +639,13 @@ export const ImportModal: React.FC<ImportModalProps> = ({
                   <CloudDownload size={15} />
                   <span>
                     {downloadingYear === 'today'
-                      ? 'Mengunduh Partai Hari Ini…'
-                      : 'Download Partai Hari Ini (Live Floodgate)'}
+                      ? t('import.downloadingToday')
+                      : t('import.downloadToday')}
                   </span>
                 </button>
 
                 <div className="wdoor-limit-select">
-                  <span>Batas per arsip:</span>
+                  <span>{t('import.limitPerArchive')}</span>
                   {[50, 150, 300].map((lim) => (
                     <button
                       key={lim}
@@ -788,7 +791,7 @@ export const ImportModal: React.FC<ImportModalProps> = ({
 
         <div className="modal-footer">
           <button type="button" className="secondary-btn" onClick={onClose}>
-            Tutup
+            {t('auth.close')}
           </button>
           {sourceTab === 'local' && (
             <>
@@ -797,14 +800,14 @@ export const ImportModal: React.FC<ImportModalProps> = ({
                 className="launcher-cta-btn compact"
                 onClick={() => handleParseSubmit(false)}
               >
-                Add to Database
+                {t('import.addToDb')}
               </button>
               <button
                 type="button"
                 className="primary-solid-btn"
                 onClick={() => handleParseSubmit(true)}
               >
-                Import &amp; Analyze
+                {t('import.importAnalyze')}
               </button>
             </>
           )}
@@ -991,11 +994,12 @@ export const SettingsHelpModal: React.FC<SettingsHelpModalProps> = ({
   onToggleNotationMode,
   onClose,
 }) => {
+  const { locale, setLocale, t } = useI18n();
   return (
     <div className="modal-backdrop" onClick={onClose}>
       <div className="studio-modal" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
-          <h3>{mode === 'settings' ? 'Studio Settings' : 'Shogi Rules & Drops Guide'}</h3>
+          <h3>{mode === 'settings' ? t('settings.title') : t('help.title')}</h3>
           <button type="button" className="icon-close-btn" onClick={onClose}>
             <X size={16} />
           </button>
@@ -1005,10 +1009,26 @@ export const SettingsHelpModal: React.FC<SettingsHelpModalProps> = ({
             <div className="settings-list">
               <div className="setting-row">
                 <div>
-                  <div className="setting-title">Board Surface Palette</div>
-                  <div className="setting-desc">
-                    Switch between traditional Kaya wood and classic Cream/Walnut checkered squares.
-                  </div>
+                  <div className="setting-title">{t('settings.language')}</div>
+                  <div className="setting-desc">{t('settings.languageDesc')}</div>
+                </div>
+                <select
+                  className="studio-input lang-settings-select"
+                  value={locale}
+                  onChange={(e) => setLocale(e.target.value as LocaleCode)}
+                  aria-label={t('settings.language')}
+                >
+                  {SUPPORTED_LOCALES.map((opt) => (
+                    <option key={opt.code} value={opt.code}>
+                      [{opt.shortCode}] {opt.nativeLabel} — {opt.country}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="setting-row">
+                <div>
+                  <div className="setting-title">{t('settings.boardPalette')}</div>
+                  <div className="setting-desc">{t('settings.boardPaletteDesc')}</div>
                 </div>
                 <button type="button" className="launcher-cta-btn compact" onClick={onToggleBoardTheme}>
                   {boardTheme === 'kaya' ? 'Kaya Wood' : 'Cream / Walnut'}
@@ -1016,21 +1036,17 @@ export const SettingsHelpModal: React.FC<SettingsHelpModalProps> = ({
               </div>
               <div className="setting-row">
                 <div>
-                  <div className="setting-title">Beginner Letter Badges</div>
-                  <div className="setting-desc">
-                    Display English piece initials (R, B, G, S, N, L, P) underneath Kanji glyphs.
-                  </div>
+                  <div className="setting-title">{t('settings.letterBadges')}</div>
+                  <div className="setting-desc">{t('settings.letterBadgesDesc')}</div>
                 </div>
                 <button type="button" className="launcher-cta-btn compact" onClick={onToggleEnglishHints}>
-                  {showEnglishHints ? 'Enabled' : 'Disabled'}
+                  {showEnglishHints ? t('settings.enabled') : t('settings.disabled')}
                 </button>
               </div>
               <div className="setting-row">
                 <div>
-                  <div className="setting-title">Move Notation Format</div>
-                  <div className="setting-desc">
-                    Choose Japanese Kifu (▲7六歩) or Western algebraic (P-7f).
-                  </div>
+                  <div className="setting-title">{t('settings.notationFormat')}</div>
+                  <div className="setting-desc">{t('settings.notationFormatDesc')}</div>
                 </div>
                 <button type="button" className="launcher-cta-btn compact" onClick={onToggleNotationMode}>
                   {notationMode === 'kifu' ? 'Japanese Kifu' : 'Western'}
@@ -1057,7 +1073,7 @@ export const SettingsHelpModal: React.FC<SettingsHelpModalProps> = ({
         </div>
         <div className="modal-footer">
           <button type="button" className="primary-solid-btn" onClick={onClose}>
-            Done
+            {t('settings.done')}
           </button>
         </div>
       </div>

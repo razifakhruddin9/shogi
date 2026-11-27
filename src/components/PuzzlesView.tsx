@@ -33,6 +33,7 @@ import {
   ShogiPosition,
   Square,
 } from '../engine/types';
+import { useI18n } from '../i18n';
 import { ShogiPieceSvg } from './ShogiPieceSvg';
 
 interface PuzzlesViewProps {
@@ -84,6 +85,7 @@ export const PuzzlesView: React.FC<PuzzlesViewProps> = ({
   boardTheme,
   showEnglishHints,
 }) => {
+  const { t } = useI18n();
   const [viewMode, setViewMode] = useState<'practice' | 'guide'>('practice');
   const [guideTopic, setGuideTopic] = useState<GuideTopicId>('basics');
   const [puzzleIdx, setPuzzleIdx] = useState(0);
@@ -257,12 +259,14 @@ export const PuzzlesView: React.FC<PuzzlesViewProps> = ({
             ) : (
               <GraduationCap size={15} className="accent-icon" />
             )}
-            <span>{viewMode === 'practice' ? 'Puzzle Level 1–6' : 'Panduan Pemula'}</span>
+            <span>
+              {viewMode === 'practice' ? t('puzzles.header') : t('puzzles.guideHeader')}
+            </span>
           </div>
           <span className="mono-pill">
             {viewMode === 'practice'
               ? `${solvedIds.length}/${SHOGI_PUZZLES.length}`
-              : '5 Bab'}
+              : '5'}
           </span>
         </div>
 
@@ -276,7 +280,7 @@ export const PuzzlesView: React.FC<PuzzlesViewProps> = ({
             onClick={() => setViewMode('practice')}
           >
             <Puzzle size={13} />
-            <span>Latihan Puzzle</span>
+            <span>{t('puzzles.tabPractice')}</span>
           </button>
           <button
             type="button"
@@ -286,7 +290,7 @@ export const PuzzlesView: React.FC<PuzzlesViewProps> = ({
             onClick={() => setViewMode('guide')}
           >
             <BookOpen size={13} />
-            <span>Panduan Pemula</span>
+            <span>{t('puzzles.tabGuide')}</span>
           </button>
         </div>
 
@@ -295,7 +299,7 @@ export const PuzzlesView: React.FC<PuzzlesViewProps> = ({
             <div className="puzzle-stats-strip">
               <div className="stat-box">
                 <Flame size={15} className="warn-text" />
-                <span>Streak: {streak}</span>
+                <span>{t('puzzles.streak')}: {streak}</span>
               </div>
               <div className="stat-box">
                 <CheckCircle2 size={15} className="win-text" />
@@ -1024,10 +1028,10 @@ export const PuzzlesView: React.FC<PuzzlesViewProps> = ({
 
         <div className="puzzle-curriculum-box">
           <div className="curriculum-row">
-            <strong>Fokus Kognitif:</strong> {levelMeta.cognitiveFocus}
+            <strong>{t('puzzles.cognitiveFocus')}</strong> {levelMeta.cognitiveFocus}
           </div>
           <div className="curriculum-row">
-            <strong>Relevansi Strategi:</strong> {levelMeta.realWorldRelevance}
+            <strong>{t('puzzles.strategyRelevance')}</strong> {levelMeta.realWorldRelevance}
           </div>
         </div>
 
@@ -1035,8 +1039,8 @@ export const PuzzlesView: React.FC<PuzzlesViewProps> = ({
           <div className="puzzle-feedback success">
             <CheckCircle2 size={18} />
             <div>
-              <strong>Level {puzzle.level} Selesai!</strong>
-              <div>Rangkaian skakmat selesai dengan presisi.</div>
+              <strong>Level {puzzle.level} ✓</strong>
+              <div>{t('puzzles.solvedDesc')}</div>
             </div>
           </div>
         )}
@@ -1046,9 +1050,9 @@ export const PuzzlesView: React.FC<PuzzlesViewProps> = ({
             <XCircle size={18} />
             <div>
               <strong>
-                {status === 'timeout' ? 'Waktu Byoyomi Habis' : 'Bukan Langkah Solusi'}
+                {status === 'timeout' ? t('puzzles.timeoutTitle') : t('puzzles.wrongTitle')}
               </strong>
-              <div>Tekan Retry Puzzle untuk mencoba urutan langkah lagi.</div>
+              <div>{t('puzzles.retryHint')}</div>
             </div>
           </div>
         )}
@@ -1066,7 +1070,7 @@ export const PuzzlesView: React.FC<PuzzlesViewProps> = ({
             onClick={() => setShowHint((h) => !h)}
           >
             <HelpCircle size={14} />
-            <span>{showHint ? 'Sembunyikan Hint' : 'Tampilkan Hint'}</span>
+            <span>{showHint ? t('puzzles.hideHint') : t('puzzles.showHint')}</span>
           </button>
 
           <button
@@ -1075,7 +1079,7 @@ export const PuzzlesView: React.FC<PuzzlesViewProps> = ({
             onClick={() => loadPuzzle(puzzleIdx)}
           >
             <RotateCcw size={14} />
-            <span>Retry Puzzle</span>
+            <span>{t('puzzles.retry')}</span>
           </button>
 
           {puzzleIdx < SHOGI_PUZZLES.length - 1 && (
@@ -1084,7 +1088,7 @@ export const PuzzlesView: React.FC<PuzzlesViewProps> = ({
               className="primary-solid-btn full-width"
               onClick={() => loadPuzzle(puzzleIdx + 1)}
             >
-              Puzzle Berikutnya →
+              {t('puzzles.next')}
             </button>
           )}
 
@@ -1094,7 +1098,7 @@ export const PuzzlesView: React.FC<PuzzlesViewProps> = ({
             onClick={() => setViewMode('guide')}
           >
             <GraduationCap size={14} />
-            <span>Panduan, Aturan &amp; Tutorial Pemula</span>
+            <span>{t('puzzles.openGuide')}</span>
           </button>
         </div>
       </aside>

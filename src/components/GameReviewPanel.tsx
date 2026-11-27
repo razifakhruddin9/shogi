@@ -6,6 +6,7 @@ import {
   REVIEW_CATEGORIES,
 } from '../engine/gameReview';
 import { Side } from '../engine/types';
+import { TranslationKey, useI18n } from '../i18n';
 
 interface GameReviewPanelProps {
   review: FullGameReview | null;
@@ -43,6 +44,7 @@ export const GameReviewPanel: React.FC<GameReviewPanelProps> = ({
   onRematch,
   onRunReview,
 }) => {
+  const { t } = useI18n();
   if (loading) {
     const pct =
       progress && progress.total > 0
@@ -51,10 +53,9 @@ export const GameReviewPanel: React.FC<GameReviewPanelProps> = ({
     return (
       <div className="review-panel-scroll">
         <div className="review-loading-card">
-          <div className="review-loading-title">Menyusun Ulasan Permainan…</div>
+          <div className="review-loading-title">{t('review.building')}</div>
           <div className="review-loading-sub">
-            Mengevaluasi setiap langkah dengan engine ({progress?.done ?? 0}/
-            {progress?.total ?? 0})
+            ({progress?.done ?? 0}/{progress?.total ?? 0})
           </div>
           <div className="review-progress-track">
             <div className="review-progress-fill" style={{ width: `${pct}%` }} />
@@ -68,17 +69,14 @@ export const GameReviewPanel: React.FC<GameReviewPanelProps> = ({
     return (
       <div className="review-panel-scroll">
         <div className="review-loading-card">
-          <div className="review-loading-title">Ulasan Permainan Belum Dibuat</div>
-          <div className="review-loading-sub">
-            Jalankan analisis langkah untuk melihat grafik keunggulan, skor akurasi
-            0–100, keterampilan bermain, dan rincian jenis tindakan.
-          </div>
+          <div className="review-loading-title">{t('review.notCreated')}</div>
+          <div className="review-loading-sub">{t('review.notCreatedDesc')}</div>
           <button
             type="button"
             className="primary-solid-btn"
             onClick={onRunReview}
           >
-            Mulai Ulasan Permainan
+            {t('review.startReview')}
           </button>
         </div>
       </div>
@@ -120,7 +118,7 @@ export const GameReviewPanel: React.FC<GameReviewPanelProps> = ({
       <section className="review-section">
         <div className="review-section-title">
           <Award size={14} className="accent-icon" />
-          <span>Akurasi Profil ({userName})</span>
+          <span>{t('review.profileAccuracy')} ({userName})</span>
         </div>
 
         <div className="accuracy-cards-pair">
@@ -154,7 +152,7 @@ export const GameReviewPanel: React.FC<GameReviewPanelProps> = ({
       {/* 2. Keterampilan (Performance Rating & Fase Permainan) */}
       <section className="review-section">
         <div className="review-skill-header">
-          <span>Keterampilan</span>
+          <span>{t('review.skill')}</span>
           <span className="skill-elo-badge mono">
             ~{userSkill.estimatedElo} Elo • {userSkill.tierLabel}
           </span>
@@ -162,7 +160,7 @@ export const GameReviewPanel: React.FC<GameReviewPanelProps> = ({
 
         <div className="skill-bars-list">
           <div className="skill-bar-row">
-            <span className="skill-name">Pembukaan</span>
+            <span className="skill-name">{t('review.opening')}</span>
             <div className="skill-track">
               <div
                 className="skill-fill"
@@ -172,7 +170,7 @@ export const GameReviewPanel: React.FC<GameReviewPanelProps> = ({
             <span className="skill-val mono">{Math.round(userSkill.opening)}</span>
           </div>
           <div className="skill-bar-row">
-            <span className="skill-name">Tengah</span>
+            <span className="skill-name">{t('review.middlegame')}</span>
             <div className="skill-track">
               <div
                 className="skill-fill"
@@ -182,7 +180,7 @@ export const GameReviewPanel: React.FC<GameReviewPanelProps> = ({
             <span className="skill-val mono">{Math.round(userSkill.middlegame)}</span>
           </div>
           <div className="skill-bar-row">
-            <span className="skill-name">Akhir</span>
+            <span className="skill-name">{t('review.endgame')}</span>
             <div className="skill-track">
               <div
                 className="skill-fill"
@@ -193,7 +191,7 @@ export const GameReviewPanel: React.FC<GameReviewPanelProps> = ({
           </div>
         </div>
         <div className="skill-summary-note">
-          Skor Anda <strong>{userAcc.toFixed(1)}</strong> vs lawan{' '}
+          <strong>{userAcc.toFixed(1)}</strong> vs{' '}
           <strong>{oppAcc.toFixed(1)}</strong> ({review.engineLabel})
         </div>
       </section>
@@ -203,7 +201,7 @@ export const GameReviewPanel: React.FC<GameReviewPanelProps> = ({
         <div className="review-skill-header">
           <span className="graph-title-inline">
             <TrendingUp size={13} className="accent-icon" />
-            <span>Grafik Keunggulan Langkah</span>
+            <span>{t('review.advantageGraph')}</span>
           </span>
           <span className="mono-pill">Ply {viewPly}</span>
         </div>
@@ -290,7 +288,7 @@ export const GameReviewPanel: React.FC<GameReviewPanelProps> = ({
       {/* 4. Rincian 9 Jenis Tindakan */}
       <section className="review-section">
         <div className="review-skill-header">
-          <span>Jenis Tindakan</span>
+          <span>{t('review.moveBreakdown')}</span>
           <span className="counts-head-cols mono">
             <span>▲</span>
             <span>△</span>
@@ -301,6 +299,7 @@ export const GameReviewPanel: React.FC<GameReviewPanelProps> = ({
           {REVIEW_CATEGORIES.map((cat) => {
             const sCount = review.senteCounts[cat.id];
             const gCount = review.goteCounts[cat.id];
+            const catLabel = t(`review.cat.${cat.id}` as TranslationKey);
             return (
               <div key={cat.id} className="move-type-row">
                 <span
@@ -313,7 +312,7 @@ export const GameReviewPanel: React.FC<GameReviewPanelProps> = ({
                 >
                   {cat.symbol}
                 </span>
-                <span className="move-type-label">{cat.label}</span>
+                <span className="move-type-label">{catLabel}</span>
                 <span className="move-type-num mono">{sCount}</span>
                 <span className="move-type-num mono">{gCount}</span>
               </div>
@@ -331,7 +330,7 @@ export const GameReviewPanel: React.FC<GameReviewPanelProps> = ({
             onClick={onRematch}
           >
             <RotateCcw size={14} />
-            <span>Main Lagi (Rematch)</span>
+            <span>{t('arena.rematch')}</span>
           </button>
         </div>
       )}

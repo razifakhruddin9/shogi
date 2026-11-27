@@ -9,6 +9,7 @@ import {
   Trash2,
 } from 'lucide-react';
 import { RecentGameRecord } from '../data/sampleGames';
+import { useI18n } from '../i18n';
 import { ShogiKomaIcon } from './ShogiKomaIcon';
 
 interface HomeLauncherProps {
@@ -32,44 +33,45 @@ export const HomeLauncher: React.FC<HomeLauncherProps> = ({
   onOpenRecentGame,
   onClearRecentGames,
 }) => {
+  const { t } = useI18n();
   const cards = [
     {
       id: 'play',
-      title: 'Play Game',
-      description: 'Challenge AI Shogi bots across Elo tiers or play local 2-player matches.',
-      cta: 'Play',
+      title: t('home.playTitle'),
+      description: t('home.playDesc'),
+      cta: t('home.playCta'),
       icon: <ShogiKomaIcon size={50} strokeWidth={1.35} />,
       onClick: onPlayGame,
     },
     {
       id: 'analysis',
-      title: 'Analysis Board',
-      description: 'Inspect 9×9 lines with real-time engine eval bar and best-move arrows.',
-      cta: 'Open',
+      title: t('home.analysisTitle'),
+      description: t('home.analysisDesc'),
+      cta: t('home.analysisCta'),
       icon: <Cpu size={50} strokeWidth={1.35} />,
       onClick: onOpenAnalysis,
     },
     {
       id: 'repertoire',
-      title: 'New Repertoire',
-      description: 'Study Static Rook & Ranging Rook joseki lines move by move.',
-      cta: 'Create',
+      title: t('home.repertoireTitle'),
+      description: t('home.repertoireDesc'),
+      cta: t('home.repertoireCta'),
       icon: <BookOpen size={50} strokeWidth={1.35} />,
       onClick: onOpenRepertoire,
     },
     {
       id: 'import',
-      title: 'Import Game',
-      description: 'Load SFEN positions or USI move sequences into a review tab.',
-      cta: 'Import',
+      title: t('home.importTitle'),
+      description: t('home.importDesc'),
+      cta: t('home.importCta'),
       icon: <FolderOpen size={50} strokeWidth={1.35} />,
       onClick: onImportGame,
     },
     {
       id: 'puzzles',
-      title: 'Puzzles',
-      description: 'Sharpen your tactical vision with Tsume-Shogi checkmate trainers.',
-      cta: 'Train',
+      title: t('home.puzzlesTitle'),
+      description: t('home.puzzlesDesc'),
+      cta: t('home.puzzlesCta'),
       icon: <Puzzle size={50} strokeWidth={1.35} />,
       onClick: onOpenPuzzles,
     },
@@ -87,9 +89,7 @@ export const HomeLauncher: React.FC<HomeLauncherProps> = ({
             />
             <div>
               <h1 className="home-title">Shogi Studio</h1>
-              <p className="home-subtitle">
-                9×9 Japanese Chess Workspace • Full Drop Rules, Live Engine Eval &amp; Tsume Trainer
-              </p>
+              <p className="home-subtitle">{t('home.subtitle')}</p>
             </div>
           </div>
           <div className="home-badge-row">
@@ -119,11 +119,11 @@ export const HomeLauncher: React.FC<HomeLauncherProps> = ({
         </section>
 
         {/* Recent Files / Match History Panel */}
-        <section className="recent-files-panel" aria-label="Recent Files">
+        <section className="recent-files-panel" aria-label={t('home.recentFiles')}>
           <div className="recent-header">
             <div className="recent-title-wrap">
               <Clock size={15} className="muted-icon" />
-              <h3 className="recent-title">Recent Files</h3>
+              <h3 className="recent-title">{t('home.recentFiles')}</h3>
               <span className="recent-count">{recentGames.length}</span>
             </div>
             <div className="recent-actions">
@@ -133,7 +133,7 @@ export const HomeLauncher: React.FC<HomeLauncherProps> = ({
                 onClick={onImportGame}
               >
                 <FilePlus2 size={13} />
-                <span>Import Kifu</span>
+                <span>{t('home.importKifu')}</span>
               </button>
               {recentGames.length > 0 && (
                 <button
@@ -142,16 +142,14 @@ export const HomeLauncher: React.FC<HomeLauncherProps> = ({
                   onClick={onClearRecentGames}
                 >
                   <Trash2 size={13} />
-                  <span>Clear</span>
+                  <span>{t('home.clear')}</span>
                 </button>
               )}
             </div>
           </div>
 
           {recentGames.length === 0 ? (
-            <div className="recent-empty">
-              No recent Shogi files. Start a match or import an SFEN/USI game to save it here.
-            </div>
+            <div className="recent-empty">{t('home.recentEmpty')}</div>
           ) : (
             <div className="recent-table">
               {recentGames.map((g) => (
